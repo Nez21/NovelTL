@@ -1,0 +1,41 @@
+{
+  "nav": {
+    "dashboard": "Bảng điều khiển",
+    "documents": "Tài liệu",
+    "settings": "Cài đặt"
+  },
+  "dashboard": {
+    "title": "Tiểu thuyết của bạn",
+    "addNovel": "Thêm tiểu thuyết",
+    "novel": {
+      "language": {
+        "korean": "Tiếng Hàn",
+        "english": "Tiếng Anh",
+        "japanese": "Tiếng Nhật"
+      }
+    }
+  },
+  "pages": {
+    "documents": {
+      "title": "Tài liệu",
+      "comingSoon": "Trang này sẽ được triển khai sớm.",
+      "backToDashboard": "Quay lại bảng điều khiển"
+    },
+    "settings": {
+      "title": "Cài đặt",
+      "comingSoon": "Trang này sẽ được triển khai sớm.",
+      "backToDashboard": "Quay lại bảng điều khiển"
+    }
+  },
+  "form": {
+    "title": "Tiêu đề",
+    "author": "Tác giả",
+    "sourceLanguage": "Ngôn ngữ gốc",
+    "description": "Mô tả",
+    "cancel": "Hủy",
+    "add": "Thêm tiểu thuyết",
+    "validation": {
+      "required": "Trường này là bắt buộc"
+    }
+  }
+}

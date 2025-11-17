@@ -1,0 +1,41 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "documents": "Documents",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "title": "Your Novels",
+    "addNovel": "Add Novel",
+    "novel": {
+      "language": {
+        "korean": "Korean",
+        "english": "English",
+        "japanese": "Japanese"
+      }
+    }
+  },
+  "pages": {
+    "documents": {
+      "title": "Documents",
+      "comingSoon": "This page will be implemented soon.",
+      "backToDashboard": "Back to Dashboard"
+    },
+    "settings": {
+      "title": "Settings",
+      "comingSoon": "This page will be implemented soon.",
+      "backToDashboard": "Back to Dashboard"
+    }
+  },
+  "form": {
+    "title": "Title",
+    "author": "Author",
+    "sourceLanguage": "Source Language",
+    "description": "Description",
+    "cancel": "Cancel",
+    "add": "Add Novel",
+    "validation": {
+      "required": "This field is required"
+    }
+  }
+}
