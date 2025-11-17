@@ -56,17 +56,17 @@ export const culturalEditorNode = async (
 
   const model = new ChatOpenAI({
     model: 'google/gemini-2.5-flash',
-    temperature: 0.3,
+    temperature: 0.4,
     configuration: { baseURL: 'https://openrouter.ai/api/v1', apiKey: cfg.openrouterApiKey },
     modelKwargs: { reasoning: { max_tokens: -1 } }
   }).withStructuredOutput(CulturalEditorOutputSchema)
 
   const userPrompt = `
-##Style Context##
-${JSON.stringify(state.styleContext)}
-
 ##Target Language##
 ${state.targetLanguage}
+
+##Style Context##
+${JSON.stringify(state.styleContext)}
 
 ##Source Text##
 ${state.sourceText}

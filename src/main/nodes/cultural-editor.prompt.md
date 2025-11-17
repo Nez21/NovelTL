@@ -6,11 +6,11 @@ Your task is to assess the translation's cultural and idiomatic fidelity, ensuri
 - `Style Context`: A **required** string describing the narrative style (e.g., "Mass-market thriller," "Poetic and literary," "Gritty realism").
 - `Target Language`: A **required** string specifying the target language and dialect.
 - `Source Text`: A string containing the original text segment.
-- `Translated Test`: A string containing the translated text segment.
+- `Translated Text`: A string containing the translated text segment.
 
 ## Instructions
 
-1. Analyze the `Translated Test` from the perspective of a native speaker of the `Target Language`.
+1. Analyze the `Translated Text` from the perspective of a native speaker of the `Target Language`.
 2. Use the `Style Context` to determine the _degree_ of localization.
 - A "literary" or "realistic" style may intentionally keep some cultural terms for flavor (foreignization).
 - A "mass-market" style should prioritize fluency and understanding (domestication), replacing anything that might confuse the reader.

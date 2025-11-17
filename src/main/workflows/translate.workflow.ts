@@ -115,12 +115,12 @@ export const TranslateOverallStateSchema = TranslateInputStateSchema.extend({
     .array(EditorFeedbackEntrySchema)
     .optional()
     .describe('A chronological array of all editor feedback entries from the specialized editors.'),
-  attemptCount: z
+  iterationCount: z
     .number()
     .int()
     .min(0)
     .default(0)
-    .describe('The number of translation attempts made so far.')
+    .describe('The number of translation iterations made so far.')
 })
 
 export const TranslateOutputStateSchema = TranslateOverallStateSchema.pick({
@@ -133,6 +133,26 @@ export const TranslateOutputStateSchema = TranslateOverallStateSchema.pick({
 export type TranslateInputState = z.infer<typeof TranslateInputStateSchema>
 export type TranslateOverallState = z.infer<typeof TranslateOverallStateSchema>
 export type TranslateOutputState = z.infer<typeof TranslateOutputStateSchema>
+
+const editorRoutingCondition = (state: TranslateOverallState) => {
+  const editors = state.requiredEditors ?? []
+  const routes: string[] = []
+
+  if (editors.includes('Style')) {
+    routes.push('STYLE')
+  }
+  if (editors.includes('Cultural')) {
+    routes.push('CULTURAL')
+  }
+
+  return routes.length > 0 ? routes : 'TO_LEAD'
+}
+
+const editorRoutingMap = {
+  STYLE: 'style-editor',
+  CULTURAL: 'cultural-editor',
+  TO_LEAD: 'lead-editor'
+} as const
 
 const builder = new StateGraph({
   state: TranslateOverallStateSchema,
@@ -150,36 +170,21 @@ const builder = new StateGraph({
   .addEdge('complexity-analyst', 'translator')
   .addEdge('translator', 'accuracy-editor')
   .addEdge('translator', 'readability-editor')
-  .addConditionalEdges(
-    'translator',
-    (state) => {
-      const editors = state.requiredEditors ?? []
-      const routes: string[] = []
-
-      if (editors.includes('Style')) {
-        routes.push('STYLE')
-      }
-      if (editors.includes('Cultural')) {
-        routes.push('CULTURAL')
-      }
-
-      return routes.length > 0 ? routes : 'TO_LEAD'
-    },
-    {
-      STYLE: 'style-editor',
-      CULTURAL: 'cultural-editor',
-      TO_LEAD: 'lead-editor'
-    }
-  )
+  .addConditionalEdges('translator', editorRoutingCondition, editorRoutingMap)
   .addEdge('accuracy-editor', 'lead-editor')
   .addEdge('readability-editor', 'lead-editor')
   .addEdge('style-editor', 'lead-editor')
   .addEdge('cultural-editor', 'lead-editor')
   .addConditionalEdges(
     'lead-editor',
-    (state) => (state.finalStatus === 'Final Edits Required' ? 'RETRY' : 'END'),
+    (state) => {
+      if (state.finalStatus === 'Final Edits Required' && state.editorFeedback?.length) {
+        return 'REFINE'
+      }
+      return 'END'
+    },
     {
-      RETRY: 'translator',
+      REFINE: 'translator',
       END: '__end__'
     }
   )

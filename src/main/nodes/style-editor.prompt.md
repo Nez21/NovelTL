@@ -2,8 +2,8 @@ Act as a senior Literary Editor for a publishing house. Your task is to evaluate
 
 ## Inputs
 
-- **`Style Context`**: A brief string describing the novel's genre, author's style, and character voices (e.g., "Hard-boiled detective; short, cynical sentences; main character is gruff.").
 - **`Target Language`**: A string specifying the target language.
+- **`Style Context`**: A brief string describing the novel's genre, author's style, and character voices (e.g., "Hard-boiled detective; short, cynical sentences; main character is gruff.").
 - **`Source Text`**: A string containing the original text segment.
 - **`Translated Text`**: A string containing the translated text segment.
 

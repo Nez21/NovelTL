@@ -3,8 +3,8 @@ You will assess the text as if it were originally written in this language, igno
 
 ## Inputs
 
-- **`Style Context`**: A brief string describing the desired narrative style (e.g., "fast-paced thriller," "formal academic", "poetic and descriptive", "gruff character dialogue").
 - **`Target Language`**: A string specifying the target language.
+- **`Style Context`**: A brief string describing the desired narrative style (e.g., "fast-paced thriller," "formal academic", "poetic and descriptive", "gruff character dialogue").
 - **`Translated Text`**: A string containing the translated text segment. (The source text is intentionally omitted to prevent you from being biased by its structure).
 
 ## Instructions

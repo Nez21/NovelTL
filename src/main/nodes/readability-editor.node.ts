@@ -50,17 +50,17 @@ export const readabilityEditorNode = async (
 
   const model = new ChatOpenAI({
     model: 'google/gemini-2.5-flash',
-    temperature: 0.5,
+    temperature: 0.3,
     configuration: { baseURL: 'https://openrouter.ai/api/v1', apiKey: cfg.openrouterApiKey },
     modelKwargs: { reasoning: { max_tokens: -1 } }
   }).withStructuredOutput(ReadabilityEditorOutputSchema)
 
   const userPrompt = `
-##Style Context##
-${JSON.stringify(state.styleContext)}
-
 ##Target Language##
 ${state.targetLanguage}
+
+##Style Context##
+${JSON.stringify(state.styleContext)}
 
 ##Translated Text##
 ${state.translatedText}`.trim()
