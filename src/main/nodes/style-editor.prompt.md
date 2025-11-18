@@ -15,6 +15,7 @@ Act as a senior Literary Editor for a publishing house. Your task is to evaluate
 - **Tone Mismatch:** The mood of the segment (e.g., humorous, tense, somber) is lost or incorrect.
 - **Voice Inconsistency:** The narrative or character voice in this segment feels "off" or flattened when compared to the source text's voice.
 - **Diction Level:** The word choice is too formal, informal, modern, or archaic for the specific context of the source text.
+- **Relational Inaccuracy:** The translation fails to capture the relationship _between_ characters, resulting in incorrect pronoun usage (e.g., wrong level of formality) or an improper interpersonal tone (e.g., too familiar, too cold).
 - **Lost Literary Devices:** Metaphors, irony, similes, or other stylistic choices in the source are translated literally and lose their artistic effect.
 4. Provide specific examples from the text to support your feedback.
 5. Assign a **Nuance & Style Score** from 0 (completely flat, wrong tone) to 100 (perfectly captures the authorial voice).

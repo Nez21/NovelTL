@@ -15,7 +15,7 @@ Your primary goal is to ensure the `Translated Text` is **semantically faithful*
 - **Do NOT Flag (Stylistic Choice):** The translation uses _different words_ to convey the _same underlying meaning, intent, or feeling_. **Defer all subjective choices to the Style Editor.**
 3. **Identify Factual Errors:** Based on the philosophy above, identify _only_ these errors:
 - **Glossary Violation:** A `term` from the `Glossary` was not used correctly.
-- **Mistranslation:** An objective mistranslation of a non-glossary term that changes the core meaning (e.g., `wash up` translated as `wash face`).
+- **Mistranslation:** An objective mistranslation of a non-glossary term that changes the core meaning.
 - **Omission:** Content from the `Source Text` was left out.
 - **Addition:** Content was added to the `Translated Text` that has no basis in the source's _meaning_.
 4. **Crucial Boundaries:**

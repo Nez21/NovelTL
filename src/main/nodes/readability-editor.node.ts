@@ -1,6 +1,5 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { HumanMessage, SystemMessage } from '@langchain/core/messages'
 import type { RunnableConfig } from '@langchain/core/runnables'
 import { ChatOpenAI } from '@langchain/openai'
 import { z } from 'zod'
@@ -51,21 +50,46 @@ export const readabilityEditorNode = async (
   const model = new ChatOpenAI({
     model: 'google/gemini-2.5-flash',
     temperature: 0.3,
-    configuration: { baseURL: 'https://openrouter.ai/api/v1', apiKey: cfg.openrouterApiKey },
-    modelKwargs: { reasoning: { max_tokens: -1 } }
+    configuration: { baseURL: 'https://openrouter.ai/api/v1', apiKey: cfg.openrouterApiKey }
+    // modelKwargs: { reasoning: { max_tokens: -1 } }
   }).withStructuredOutput(ReadabilityEditorOutputSchema)
 
-  const userPrompt = `
+  const staticUserMessage = `
 ##Target Language##
 ${state.targetLanguage}
 
 ##Style Context##
-${JSON.stringify(state.styleContext)}
+${JSON.stringify(state.styleContext)}`.trim()
 
+  const dynamicUserMessage = `
 ##Translated Text##
 ${state.translatedText}`.trim()
 
-  const messages = [new SystemMessage(systemPrompt), new HumanMessage(userPrompt)]
+  const messages = [
+    {
+      role: 'system',
+      content: systemPrompt,
+      cache_control: {
+        type: 'ephemeral'
+      }
+    },
+    {
+      role: 'user',
+      content: [
+        {
+          type: 'text',
+          text: staticUserMessage,
+          cache_control: {
+            type: 'ephemeral'
+          }
+        },
+        {
+          type: 'text',
+          text: dynamicUserMessage
+        }
+      ]
+    }
+  ]
 
   const result = await model.invoke(messages)
 

@@ -1,6 +1,5 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { HumanMessage, SystemMessage } from '@langchain/core/messages'
 import type { RunnableConfig } from '@langchain/core/runnables'
 import { ChatOpenAI } from '@langchain/openai'
 import { z } from 'zod'
@@ -47,6 +46,13 @@ export const culturalEditorNode = async (
   state: TranslateOverallState,
   _config: RunnableConfig
 ): Promise<Partial<TranslateOverallState>> => {
+  if (!state.requiredEditors?.includes('Cultural')) {
+    return {
+      culturalScore: undefined,
+      culturalFeedback: undefined
+    }
+  }
+
   if (!state.translatedText) {
     return {
       culturalScore: 0,
@@ -61,7 +67,7 @@ export const culturalEditorNode = async (
     modelKwargs: { reasoning: { max_tokens: -1 } }
   }).withStructuredOutput(CulturalEditorOutputSchema)
 
-  const userPrompt = `
+  const staticUserMessage = `
 ##Target Language##
 ${state.targetLanguage}
 
@@ -69,12 +75,37 @@ ${state.targetLanguage}
 ${JSON.stringify(state.styleContext)}
 
 ##Source Text##
-${state.sourceText}
+${state.sourceText}`.trim()
 
+  const dynamicUserMessage = `
 ##Translated Text##
 ${state.translatedText}`.trim()
 
-  const messages = [new SystemMessage(systemPrompt), new HumanMessage(userPrompt)]
+  const messages = [
+    {
+      role: 'system',
+      content: systemPrompt,
+      cache_control: {
+        type: 'ephemeral'
+      }
+    },
+    {
+      role: 'user',
+      content: [
+        {
+          type: 'text',
+          text: staticUserMessage,
+          cache_control: {
+            type: 'ephemeral'
+          }
+        },
+        {
+          type: 'text',
+          text: dynamicUserMessage
+        }
+      ]
+    }
+  ]
 
   const result = await model.invoke(messages)
 

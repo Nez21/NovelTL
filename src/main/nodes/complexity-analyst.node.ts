@@ -42,12 +42,8 @@ export const complexityAnalystNode = async (
     configuration: {
       baseURL: 'https://openrouter.ai/api/v1',
       apiKey: cfg.openrouterApiKey
-    },
-    modelKwargs: {
-      reasoning: {
-        max_tokens: -1
-      }
     }
+    // modelKwargs: { reasoning: { max_tokens: -1 } }
   }).withStructuredOutput(ComplexityAnalysisOutputSchema)
 
   const userPrompt = `

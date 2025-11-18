@@ -5,14 +5,15 @@ import { z } from 'zod'
 import { AccuracyErrorSchema, accuracyEditorNode } from '../nodes/accuracy-editor.node'
 import { complexityAnalystNode, EditorTypeEnum } from '../nodes/complexity-analyst.node'
 import { CulturalErrorSchema, culturalEditorNode } from '../nodes/cultural-editor.node'
+import { draftTranslatorNode } from '../nodes/draft-translator.node'
 import {
   EditorFeedbackEntrySchema,
   LeadEditorErrorSchema,
   leadEditorNode
 } from '../nodes/lead-editor.node'
 import { ReadabilityErrorSchema, readabilityEditorNode } from '../nodes/readability-editor.node'
+import { refinementNode } from '../nodes/refinement.node'
 import { StyleErrorSchema, styleEditorNode } from '../nodes/style-editor.node'
-import { translatorNode } from '../nodes/translator.node'
 import { EditingStatusEnum, LanguageEnum } from '../shared.types'
 
 export const TranslateInputStateSchema = z.object({
@@ -134,47 +135,33 @@ export type TranslateInputState = z.infer<typeof TranslateInputStateSchema>
 export type TranslateOverallState = z.infer<typeof TranslateOverallStateSchema>
 export type TranslateOutputState = z.infer<typeof TranslateOutputStateSchema>
 
-const editorRoutingCondition = (state: TranslateOverallState) => {
-  const editors = state.requiredEditors ?? []
-  const routes: string[] = []
-
-  if (editors.includes('Style')) {
-    routes.push('STYLE')
-  }
-  if (editors.includes('Cultural')) {
-    routes.push('CULTURAL')
-  }
-
-  return routes.length > 0 ? routes : 'TO_LEAD'
-}
-
-const editorRoutingMap = {
-  STYLE: 'style-editor',
-  CULTURAL: 'cultural-editor',
-  TO_LEAD: 'lead-editor'
-} as const
-
 const builder = new StateGraph({
   state: TranslateOverallStateSchema,
   input: TranslateInputStateSchema,
   output: TranslateOutputStateSchema
 })
   .addNode('complexity-analyst', complexityAnalystNode)
-  .addNode('translator', translatorNode)
+  .addNode('draft-translator', draftTranslatorNode)
   .addNode('accuracy-editor', accuracyEditorNode)
   .addNode('readability-editor', readabilityEditorNode)
   .addNode('style-editor', styleEditorNode)
   .addNode('cultural-editor', culturalEditorNode)
   .addNode('lead-editor', leadEditorNode)
+  .addNode('refinement', refinementNode)
   .addEdge('__start__', 'complexity-analyst')
-  .addEdge('complexity-analyst', 'translator')
-  .addEdge('translator', 'accuracy-editor')
-  .addEdge('translator', 'readability-editor')
-  .addConditionalEdges('translator', editorRoutingCondition, editorRoutingMap)
-  .addEdge('accuracy-editor', 'lead-editor')
-  .addEdge('readability-editor', 'lead-editor')
-  .addEdge('style-editor', 'lead-editor')
-  .addEdge('cultural-editor', 'lead-editor')
+  .addEdge('complexity-analyst', 'draft-translator')
+  .addEdge('draft-translator', 'accuracy-editor')
+  .addEdge('draft-translator', 'readability-editor')
+  .addEdge('draft-translator', 'style-editor')
+  .addEdge('draft-translator', 'cultural-editor')
+  .addEdge('refinement', 'accuracy-editor')
+  .addEdge('refinement', 'readability-editor')
+  .addEdge('refinement', 'style-editor')
+  .addEdge('refinement', 'cultural-editor')
+  .addEdge(
+    ['accuracy-editor', 'readability-editor', 'style-editor', 'cultural-editor'],
+    'lead-editor'
+  )
   .addConditionalEdges(
     'lead-editor',
     (state) => {
@@ -184,7 +171,7 @@ const builder = new StateGraph({
       return 'END'
     },
     {
-      REFINE: 'translator',
+      REFINE: 'refinement',
       END: '__end__'
     }
   )

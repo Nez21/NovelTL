@@ -1,6 +1,5 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { HumanMessage, SystemMessage } from '@langchain/core/messages'
 import type { RunnableConfig } from '@langchain/core/runnables'
 import { ChatOpenAI } from '@langchain/openai'
 import { z } from 'zod'
@@ -102,6 +101,7 @@ export const leadEditorNode = async (
 
   if (state.iterationCount > MAX_EDIT_ITERATIONS) {
     return {
+      holisticScore,
       finalStatus: holisticScore < MIN_ACCEPTABLE_SCORE ? 'Escalated To Human' : 'Approved',
       editorFeedback: recentEditorFeedback.flatMap(({ feedback }) => feedback)
     }
@@ -114,13 +114,14 @@ export const leadEditorNode = async (
     modelKwargs: { reasoning: { max_tokens: -1 } }
   }).withStructuredOutput(LeadEditorOutputSchema)
 
-  const userPrompt = `
+  const staticUserMessage = `
 ##Style Context##
 ${JSON.stringify(state.styleContext)}
 
 ##Source Text##
-${state.sourceText}
+${state.sourceText}`.trim()
 
+  const dynamicUserMessage = `
 ##Translated Text##
 ${state.translatedText}
 
@@ -130,7 +131,31 @@ ${JSON.stringify(state.editorFeedbackHistory ?? [])}
 ##Recent Feedback##
 ${JSON.stringify(recentEditorFeedback)}`.trim()
 
-  const messages = [new SystemMessage(systemPrompt), new HumanMessage(userPrompt)]
+  const messages = [
+    {
+      role: 'system',
+      content: systemPrompt,
+      cache_control: {
+        type: 'ephemeral'
+      }
+    },
+    {
+      role: 'user',
+      content: [
+        {
+          type: 'text',
+          text: staticUserMessage,
+          cache_control: {
+            type: 'ephemeral'
+          }
+        },
+        {
+          type: 'text',
+          text: dynamicUserMessage
+        }
+      ]
+    }
+  ]
 
   const result = await model.invoke(messages)
 
