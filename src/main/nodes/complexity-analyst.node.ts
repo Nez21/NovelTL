@@ -48,7 +48,10 @@ export const complexityAnalystNode = async (
 
   const userPrompt = `
 ##Source Text##
-${state.sourceText}`.trim()
+${state.sourceText}
+
+##Style Context##
+${JSON.stringify(state.styleContext)}`.trim()
 
   const messages = [new SystemMessage(systemPrompt), new HumanMessage(userPrompt)]
 
