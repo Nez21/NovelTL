@@ -53,6 +53,9 @@ export const accuracyEditorNode = async (
   }).withStructuredOutput(AccuracyEditorOutputSchema)
 
   const staticUserMessage = `
+##Character Manifest##
+${JSON.stringify(state.characterManifest)}
+
 ##Glossary##
 ${JSON.stringify(state.glossary)}
 

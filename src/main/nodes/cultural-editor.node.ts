@@ -74,6 +74,12 @@ ${state.targetLanguage}
 ##Style Context##
 ${JSON.stringify(state.styleContext)}
 
+##Character Manifest##
+${JSON.stringify(state.characterManifest)}
+
+##Glossary##
+${JSON.stringify(state.glossary)}
+
 ##Source Text##
 ${state.sourceText}`.trim()
 

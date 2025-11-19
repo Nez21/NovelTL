@@ -1,4 +1,4 @@
-export const MAX_EDIT_ITERATIONS = 3
+export const MAX_EDIT_ITERATIONS = 4
 export const DEFAULT_ACCEPTABLE_SCORE = 95
 export const MIN_ACCEPTABLE_SCORE = 75
 export const DRAFT_CANDIDATE_COUNT = 3

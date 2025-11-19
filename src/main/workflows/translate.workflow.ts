@@ -15,7 +15,7 @@ import {
 import { ReadabilityErrorSchema, readabilityEditorNode } from '../nodes/readability-editor.node'
 import { refinementNode } from '../nodes/refinement.node'
 import { StyleErrorSchema, styleEditorNode } from '../nodes/style-editor.node'
-import { EditingStatusEnum, LanguageEnum } from '../shared.types'
+import { CharacterSchema, EditingStatusEnum, LanguageEnum } from '../shared.types'
 
 export const TranslateInputStateSchema = z.object({
   targetLanguage: LanguageEnum,
@@ -23,6 +23,7 @@ export const TranslateInputStateSchema = z.object({
     genre: z.string(),
     authorialStyle: z.string()
   }),
+  characterManifest: z.array(CharacterSchema.omit({ characterId: true })),
   glossary: z.array(
     z.object({
       term: z.string(),

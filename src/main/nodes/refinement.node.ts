@@ -32,15 +32,6 @@ export const refinementNode = async (
   }).withStructuredOutput(RefinementOutputSchema)
 
   const staticUserMessage = `
-##Target Language##
-${state.targetLanguage}
-
-##Style Context##
-${JSON.stringify(state.styleContext)}
-
-##Glossary##
-${JSON.stringify(state.glossary)}
-
 ##Source Text##
 ${state.sourceText}`.trim()
 
