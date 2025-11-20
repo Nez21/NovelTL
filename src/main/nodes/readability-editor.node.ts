@@ -10,16 +10,8 @@ const systemPrompt = readFileSync(join(__dirname, './readability-editor.prompt.m
 
 export const ReadabilityErrorSchema = z.object({
   type: z
-    .enum(['Unnatural Flow', 'Ambiguity', 'Rhythm Failure'])
+    .enum(['Severe Translationese', 'Rhythm Paralysis', 'Critical Ambiguity'])
     .describe('Mechanical or flow-based linguistic errors.'),
-  severity: z
-    .number()
-    .int()
-    .min(1)
-    .max(5)
-    .describe(
-      'Severity level: 1 = Minor stylistic preference, 2 = Moderate flow issue, 3 = Significant readability problem, 4 = High severity (confusing sentence structure), 5 = Critical (unreadable or grammatically broken text).'
-    ),
   confidence: z
     .number()
     .int()
@@ -65,17 +57,14 @@ export const readabilityEditorNode = async (
 
   const model = new ChatOpenAI({
     model: 'google/gemini-2.5-flash',
-    temperature: 0.3,
-    configuration: { baseURL: 'https://openrouter.ai/api/v1', apiKey: cfg.openrouterApiKey }
-    // modelKwargs: { reasoning: { max_tokens: -1 } }
+    temperature: 0.2,
+    configuration: { baseURL: 'https://openrouter.ai/api/v1', apiKey: cfg.openrouterApiKey },
+    modelKwargs: { reasoning: { max_tokens: -1 } }
   }).withStructuredOutput(ReadabilityEditorOutputSchema)
 
   const staticUserMessage = `
 ##Target Language##
-${state.targetLanguage}
-
-##Source Text##
-${state.sourceText}`.trim()
+${state.targetLanguage}`.trim()
 
   const dynamicUserMessage = `
 ##Translated Text##

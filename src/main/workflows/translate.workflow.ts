@@ -3,8 +3,6 @@ import '@langchain/langgraph/zod'
 import { StateGraph } from '@langchain/langgraph'
 import { z } from 'zod'
 import { AccuracyErrorSchema, accuracyEditorNode } from '../nodes/accuracy-editor.node'
-import { complexityAnalystNode, EditorTypeEnum } from '../nodes/complexity-analyst.node'
-import { CulturalErrorSchema, culturalEditorNode } from '../nodes/cultural-editor.node'
 import { draftSelectorNode } from '../nodes/draft-selector.node'
 import { draftTranslatorNode } from '../nodes/draft-translator.node'
 import {
@@ -35,23 +33,6 @@ export const TranslateInputStateSchema = z.object({
 })
 
 export const TranslateOverallStateSchema = TranslateInputStateSchema.extend({
-  complexityScore: z
-    .number()
-    .int()
-    .min(0)
-    .max(100)
-    .optional()
-    .describe('The complexity score assigned by the complexity analyst (0-100).'),
-  requiredEditors: z
-    .array(EditorTypeEnum)
-    .optional()
-    .describe('The specialized editors required for this translation.'),
-  complexityReason: z
-    .string()
-    .optional()
-    .describe(
-      'A brief explanation of the complexity analysis, including the key factors that influenced the score and editor selection.'
-    ),
   draftCandidates: z
     .array(z.string())
     .optional()
@@ -97,19 +78,6 @@ export const TranslateOverallStateSchema = TranslateInputStateSchema.extend({
     .array(ReadabilityErrorSchema)
     .optional()
     .describe('An array of specific readability/flow errors found by the readability editor.'),
-  culturalScore: z
-    .number()
-    .int()
-    .min(0)
-    .max(100)
-    .optional()
-    .describe('The cultural fidelity score assigned by the cultural editor (0-100).'),
-  culturalFeedback: z
-    .array(CulturalErrorSchema)
-    .optional()
-    .describe(
-      'An array of specific cultural/idiomatic fidelity errors found by the cultural editor.'
-    ),
   holisticScore: z
     .number()
     .int()
@@ -150,30 +118,22 @@ const builder = new StateGraph({
   input: TranslateInputStateSchema,
   output: TranslateOutputStateSchema
 })
-  .addNode('complexity-analyst', complexityAnalystNode)
   .addNode('draft-translator', draftTranslatorNode)
   .addNode('draft-selector', draftSelectorNode)
   .addNode('accuracy-editor', accuracyEditorNode)
   .addNode('readability-editor', readabilityEditorNode)
   .addNode('style-editor', styleEditorNode)
-  .addNode('cultural-editor', culturalEditorNode)
   .addNode('lead-editor', leadEditorNode)
   .addNode('refinement', refinementNode)
-  .addEdge('__start__', 'complexity-analyst')
-  .addEdge('complexity-analyst', 'draft-translator')
+  .addEdge('__start__', 'draft-translator')
   .addEdge('draft-translator', 'draft-selector')
   .addEdge('draft-selector', 'accuracy-editor')
   .addEdge('draft-selector', 'readability-editor')
   .addEdge('draft-selector', 'style-editor')
-  .addEdge('draft-selector', 'cultural-editor')
   .addEdge('refinement', 'accuracy-editor')
   .addEdge('refinement', 'readability-editor')
   .addEdge('refinement', 'style-editor')
-  .addEdge('refinement', 'cultural-editor')
-  .addEdge(
-    ['accuracy-editor', 'readability-editor', 'style-editor', 'cultural-editor'],
-    'lead-editor'
-  )
+  .addEdge(['accuracy-editor', 'readability-editor', 'style-editor'], 'lead-editor')
   .addConditionalEdges(
     'lead-editor',
     (state) => {

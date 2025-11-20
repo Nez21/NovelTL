@@ -5,7 +5,7 @@ import type { RunnableConfig } from '@langchain/core/runnables'
 import { ChatOpenAI } from '@langchain/openai'
 import { z } from 'zod'
 import { cfg } from '../config'
-import { DRAFT_CANDIDATE_COUNT, DRAFT_SELECTOR_COMPLEXITY_THRESHOLD } from '../constant'
+import { DRAFT_CANDIDATE_COUNT } from '../constant'
 import type { TranslateOverallState } from '../workflows/translate.workflow'
 
 const systemPrompt = readFileSync(join(__dirname, './draft-translator.prompt.md'), 'utf-8')
@@ -45,27 +45,15 @@ ${state.sourceText}`.trim()
 
   const messages = [new SystemMessage(systemPrompt), new HumanMessage(userPrompt)]
 
-  const complexityScore = state.complexityScore ?? 0
-  const shouldGenerateMultipleCandidates = complexityScore >= DRAFT_SELECTOR_COMPLEXITY_THRESHOLD
+  const candidatePromises = Array.from({ length: DRAFT_CANDIDATE_COUNT }, () =>
+    model.invoke(messages)
+  )
+  const candidates = await Promise.all(candidatePromises)
 
-  if (shouldGenerateMultipleCandidates) {
-    const candidatePromises = Array.from({ length: DRAFT_CANDIDATE_COUNT }, () =>
-      model.invoke(messages)
-    )
-    const candidates = await Promise.all(candidatePromises)
+  const draftCandidates = candidates.map((result) => result.translatedText)
 
-    const draftCandidates = candidates.map((result) => result.translatedText)
-
-    return {
-      iterationCount: 1,
-      draftCandidates
-    }
-  } else {
-    const result = await model.invoke(messages)
-
-    return {
-      iterationCount: 1,
-      translatedText: result.translatedText
-    }
+  return {
+    iterationCount: 1,
+    draftCandidates
   }
 }

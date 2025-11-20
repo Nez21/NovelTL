@@ -10,16 +10,8 @@ const systemPrompt = readFileSync(join(__dirname, './style-editor.prompt.md'), '
 
 export const StyleErrorSchema = z.object({
   type: z
-    .enum(['Tone Mismatch', 'Voice Inconsistency', 'Sensory Dilution', 'Repetition'])
+    .enum(['Stylistic Dilution', 'Voice Inconsistency', 'Tonal Dissonance'])
     .describe('The category of stylistic divergence.'),
-  severity: z
-    .number()
-    .int()
-    .min(1)
-    .max(5)
-    .describe(
-      'Severity level: 1 = Minor stylistic preference, 2 = Moderate style deviation, 3 = Significant voice inconsistency, 4 = High severity (major tone mismatch), 5 = Critical (total destruction of character voice or atmosphere).'
-    ),
   confidence: z
     .number()
     .int()
@@ -56,13 +48,6 @@ export const styleEditorNode = async (
   state: TranslateOverallState,
   _config: RunnableConfig
 ): Promise<Partial<TranslateOverallState>> => {
-  if (!state.requiredEditors?.includes('Style')) {
-    return {
-      styleScore: undefined,
-      styleFeedback: undefined
-    }
-  }
-
   if (!state.translatedText) {
     return {
       styleScore: 0,
@@ -72,7 +57,7 @@ export const styleEditorNode = async (
 
   const model = new ChatOpenAI({
     model: 'google/gemini-2.5-flash',
-    temperature: 0.5,
+    temperature: 0.3,
     configuration: { baseURL: 'https://openrouter.ai/api/v1', apiKey: cfg.openrouterApiKey },
     modelKwargs: { reasoning: { max_tokens: -1 } }
   }).withStructuredOutput(StyleEditorOutputSchema)

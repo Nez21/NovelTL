@@ -10,23 +10,8 @@ const systemPrompt = readFileSync(join(__dirname, './accuracy-editor.prompt.md')
 
 export const AccuracyErrorSchema = z.object({
   type: z
-    .enum([
-      'Glossary Violation',
-      'Hallucination',
-      'Omission',
-      'Mistranslation',
-      'Entity Inconsistency',
-      'Speaker Error'
-    ])
+    .enum(['Critical Deviation', 'Context Mismatch', 'Semantic Error'])
     .describe('The specific category of factual or fidelity error.'),
-  severity: z
-    .number()
-    .int()
-    .min(1)
-    .max(5)
-    .describe(
-      'Severity level: 1 = Minor nuance difference, 2 = Moderate mistranslation, 3 = Significant error, 4 = High severity (e.g., Entity inconsistency), 5 = Critical (Glossary violation or Hallucination).'
-    ),
   confidence: z
     .number()
     .int()

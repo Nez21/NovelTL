@@ -12,19 +12,12 @@ const systemPrompt = readFileSync(join(__dirname, './lead-editor.prompt.md'), 'u
 
 export const EditorFeedbackEntrySchema = z.object({
   role: z
-    .enum([
-      'Accuracy Editor',
-      'Style Editor',
-      'Cultural Editor',
-      'Readability Editor',
-      'Lead Editor'
-    ])
+    .enum(['Accuracy Editor', 'Style Editor', 'Readability Editor', 'Lead Editor'])
     .describe('The role of the editor providing feedback.'),
   feedback: z
     .array(
       z.object({
         type: z.string().describe('The type of error found.'),
-        severity: z.number().int().min(1).max(5).describe('Severity level from 1 to 5.'),
         confidence: z.number().int().min(0).max(100).describe('Confidence level from 0 to 100.'),
         sourceSegment: z
           .string()
@@ -39,7 +32,6 @@ export const EditorFeedbackEntrySchema = z.object({
 
 export const LeadEditorErrorSchema = z.object({
   type: z.string().describe('The original type of error that was detected by the editor.'),
-  severity: z.number().int().min(1).max(5).optional().describe('Severity level from 1 to 5.'),
   confidence: z
     .number()
     .int()
@@ -82,13 +74,6 @@ export const leadEditorNode = async (
     })
   }
 
-  if (state.culturalFeedback?.length) {
-    recentEditorFeedback.push({
-      role: 'Cultural Editor',
-      feedback: state.culturalFeedback
-    })
-  }
-
   if (state.readabilityFeedback?.length) {
     recentEditorFeedback.push({
       role: 'Readability Editor',
@@ -96,24 +81,19 @@ export const leadEditorNode = async (
     })
   }
 
-  const scores = [
-    state.accuracyScore,
-    state.styleScore,
-    state.culturalScore,
-    state.readabilityScore
-  ].filter(Boolean) as number[]
+  const scores = [state.accuracyScore, state.styleScore, state.readabilityScore].filter(
+    Boolean
+  ) as number[]
   const holisticScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
 
   if (
     state.iterationCount > MAX_EDIT_ITERATIONS ||
     recentEditorFeedback.flatMap(({ feedback }) => feedback).length === 0
   ) {
-    // Flatten feedback for backward compatibility
     const flattenedFeedback: z.infer<typeof LeadEditorErrorSchema>[] = recentEditorFeedback.flatMap(
       ({ feedback }) =>
         feedback.map((item) => ({
           type: item.type,
-          severity: item.severity,
           confidence: item.confidence,
           sourceSegment: item.sourceSegment,
           translatedSegment: item.translatedSegment,
@@ -136,15 +116,6 @@ export const leadEditorNode = async (
   }).withStructuredOutput(LeadEditorOutputSchema)
 
   const staticUserMessage = `
-##Style Context##
-${JSON.stringify(state.styleContext)}
-
-##Character Manifest##
-${JSON.stringify(state.characterManifest)}
-
-##Glossary##
-${JSON.stringify(state.glossary)}
-
 ##Source Text##
 ${state.sourceText}`.trim()
 
@@ -186,12 +157,10 @@ ${JSON.stringify(recentEditorFeedback)}`.trim()
 
   const approvedFeedback = await model.invoke(messages)
 
-  // Flatten the approved feedback for backward compatibility with editorFeedback field
   const flattenedFeedback: z.infer<typeof LeadEditorErrorSchema>[] = approvedFeedback.flatMap(
     ({ feedback }) =>
       feedback.map((item) => ({
         type: item.type,
-        severity: item.severity,
         confidence: item.confidence,
         sourceSegment: item.sourceSegment,
         translatedSegment: item.translatedSegment,
