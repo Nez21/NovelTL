@@ -10,16 +10,42 @@ const systemPrompt = readFileSync(join(__dirname, './accuracy-editor.prompt.md')
 
 export const AccuracyErrorSchema = z.object({
   type: z
-    .enum(['Glossary Violation', 'Mistranslation', 'Omission', 'Addition'])
-    .describe('The type of accuracy error found.'),
+    .enum([
+      'Glossary Violation',
+      'Hallucination',
+      'Omission',
+      'Mistranslation',
+      'Entity Inconsistency',
+      'Speaker Error'
+    ])
+    .describe('The specific category of factual or fidelity error.'),
+  severity: z
+    .number()
+    .int()
+    .min(1)
+    .max(5)
+    .describe(
+      'Severity level: 1 = Minor nuance difference, 2 = Moderate mistranslation, 3 = Significant error, 4 = High severity (e.g., Entity inconsistency), 5 = Critical (Glossary violation or Hallucination).'
+    ),
+  confidence: z
+    .number()
+    .int()
+    .min(0)
+    .max(100)
+    .describe(
+      'Confidence in this specific error assessment from 0 (uncertain) to 100 (highly confident). Higher for clear-cut errors (e.g., Glossary violations); lower for judgment calls (e.g., subtle nuance differences).'
+    ),
   sourceSegment: z
     .string()
-    .describe('The specific segment from the source text where the error occurs.'),
+    .describe('The specific substring from the Source Text where the error originates.'),
   translatedSegment: z
     .string()
-    .optional()
-    .describe('The corresponding segment in the translated text (if applicable).'),
-  feedback: z.string().describe('Feedback on the accuracy error found.')
+    .describe('The corresponding substring in the Translation that contains the error.'),
+  feedback: z
+    .string()
+    .describe(
+      'Must include: (1) a concise explanation of the deviation, and (2) at least one suggested fix (partial correction, not the entire segment). For Glossary violations, state the required term and provide the corrected phrase.'
+    )
 })
 
 export const AccuracyEditorOutputSchema = z.object({

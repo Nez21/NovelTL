@@ -10,16 +10,31 @@ const systemPrompt = readFileSync(join(__dirname, './style-editor.prompt.md'), '
 
 export const StyleErrorSchema = z.object({
   type: z
-    .enum(['Tone Mismatch', 'Voice Inconsistency', 'Diction Level', 'Lost Literary Devices'])
-    .describe('The type of style/nuance error found.'),
-  sourceSegment: z
+    .enum(['Tone Mismatch', 'Voice Inconsistency', 'Sensory Dilution', 'Repetition'])
+    .describe('The category of stylistic divergence.'),
+  severity: z
+    .number()
+    .int()
+    .min(1)
+    .max(5)
+    .describe(
+      'Severity level: 1 = Minor stylistic preference, 2 = Moderate style deviation, 3 = Significant voice inconsistency, 4 = High severity (major tone mismatch), 5 = Critical (total destruction of character voice or atmosphere).'
+    ),
+  confidence: z
+    .number()
+    .int()
+    .min(0)
+    .max(100)
+    .describe(
+      'Confidence in this specific error assessment from 0 (uncertain) to 100 (highly confident). Higher for objective issues (e.g., clear tone mismatches); lower for subjective stylistic preferences.'
+    ),
+  translatedSegment: z
     .string()
-    .describe('The specific segment from the source text where the style issue occurs.'),
-  translatedSegment: z.string().describe('The corresponding segment in the translated text.'),
+    .describe("The specific phrase or sentence that feels 'off' or weak."),
   feedback: z
     .string()
     .describe(
-      'Detailed feedback explaining the style/nuance issue and how it affects the translation.'
+      'Must include: (1) a critique explaining *why* it fails the Style Context, and (2) at least one suggested fix (partial correction, not the entire segment).'
     )
 })
 
@@ -71,9 +86,6 @@ ${JSON.stringify(state.styleContext)}
 
 ##Character Manifest##
 ${JSON.stringify(state.characterManifest)}
-
-##Glossary##
-${JSON.stringify(state.glossary)}
 
 ##Source Text##
 ${state.sourceText}`.trim()

@@ -24,14 +24,13 @@ export const EditorFeedbackEntrySchema = z.object({
     .array(
       z.object({
         type: z.string().describe('The type of error found.'),
+        severity: z.number().int().min(1).max(5).describe('Severity level from 1 to 5.'),
+        confidence: z.number().int().min(0).max(100).describe('Confidence level from 0 to 100.'),
         sourceSegment: z
           .string()
           .optional()
           .describe('The specific segment from the source text (if applicable).'),
-        translatedSegment: z
-          .string()
-          .optional()
-          .describe('The specific segment from the translated text (if applicable).'),
+        translatedSegment: z.string().describe('The specific segment from the translated text.'),
         feedback: z.string().describe('Detailed feedback explaining the issue.')
       })
     )
@@ -40,6 +39,14 @@ export const EditorFeedbackEntrySchema = z.object({
 
 export const LeadEditorErrorSchema = z.object({
   type: z.string().describe('The original type of error that was detected by the editor.'),
+  severity: z.number().int().min(1).max(5).optional().describe('Severity level from 1 to 5.'),
+  confidence: z
+    .number()
+    .int()
+    .min(0)
+    .max(100)
+    .optional()
+    .describe('Confidence level from 0 to 100.'),
   sourceSegment: z
     .string()
     .optional()
@@ -51,11 +58,9 @@ export const LeadEditorErrorSchema = z.object({
   feedback: z.string().describe('The original feedback by the editor')
 })
 
-export const LeadEditorOutputSchema = z.object({
-  feedback: z
-    .array(LeadEditorErrorSchema)
-    .describe('An array of feedback with conflict resolutions.')
-})
+export const LeadEditorOutputSchema = z
+  .array(EditorFeedbackEntrySchema)
+  .describe('The filtered and approved subset of Recent Feedback, matching the input structure.')
 
 export const leadEditorNode = async (
   state: TranslateOverallState,
@@ -99,11 +104,27 @@ export const leadEditorNode = async (
   ].filter(Boolean) as number[]
   const holisticScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
 
-  if (state.iterationCount > MAX_EDIT_ITERATIONS) {
+  if (
+    state.iterationCount > MAX_EDIT_ITERATIONS ||
+    recentEditorFeedback.flatMap(({ feedback }) => feedback).length === 0
+  ) {
+    // Flatten feedback for backward compatibility
+    const flattenedFeedback: z.infer<typeof LeadEditorErrorSchema>[] = recentEditorFeedback.flatMap(
+      ({ feedback }) =>
+        feedback.map((item) => ({
+          type: item.type,
+          severity: item.severity,
+          confidence: item.confidence,
+          sourceSegment: item.sourceSegment,
+          translatedSegment: item.translatedSegment,
+          feedback: item.feedback
+        }))
+    )
+
     return {
       holisticScore,
       finalStatus: holisticScore < MIN_ACCEPTABLE_SCORE ? 'Escalated To Human' : 'Approved',
-      editorFeedback: recentEditorFeedback.flatMap(({ feedback }) => feedback)
+      editorFeedback: flattenedFeedback
     }
   }
 
@@ -163,11 +184,27 @@ ${JSON.stringify(recentEditorFeedback)}`.trim()
     }
   ]
 
-  const result = await model.invoke(messages)
+  const approvedFeedback = await model.invoke(messages)
+
+  // Flatten the approved feedback for backward compatibility with editorFeedback field
+  const flattenedFeedback: z.infer<typeof LeadEditorErrorSchema>[] = approvedFeedback.flatMap(
+    ({ feedback }) =>
+      feedback.map((item) => ({
+        type: item.type,
+        severity: item.severity,
+        confidence: item.confidence,
+        sourceSegment: item.sourceSegment,
+        translatedSegment: item.translatedSegment,
+        feedback: item.feedback
+      }))
+  )
 
   let finalStatus: z.infer<typeof EditingStatusEnum> = 'Final Edits Required'
 
-  if (state.iterationCount > 1 && holisticScore >= DEFAULT_ACCEPTABLE_SCORE) {
+  if (
+    (state.iterationCount > 1 && holisticScore >= DEFAULT_ACCEPTABLE_SCORE) ||
+    flattenedFeedback.length === 0
+  ) {
     finalStatus = 'Approved'
   }
 
@@ -175,7 +212,7 @@ ${JSON.stringify(recentEditorFeedback)}`.trim()
 
   return {
     holisticScore,
-    editorFeedback: result.feedback,
+    editorFeedback: flattenedFeedback,
     finalStatus,
     editorFeedbackHistory
   }

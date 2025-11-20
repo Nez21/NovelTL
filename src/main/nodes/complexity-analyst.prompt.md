@@ -12,19 +12,19 @@
 ## Instructions
 
 1. **Analyze Dimensions of Complexity**
-   - **Stylistic Density:** Look for non-standard syntax, intentional fragmentation (e.g., during action sequences), shifting narrative distance, or dense internal monologue.
-   - **Cultural Density:** Look for obscure idioms, historical references, puns, regional dialect, or social subtext that requires footnotes.
-      - **CRITICAL EXCLUSION:** Do **NOT** count standard **Genre Terminology** (e.g., "NPC," "Level Up," "Mana," "Mecha") as "Cultural Complexity." These are technical terms, not cultural nuances. Only flag them if they are used in a pun or wordplay.
-   - **Contextual Difficulty:** Does the meaning rely heavily on what was said *before* this segment (high context dependency)?
+   - **Stylistic Density:** Look for non-standard syntax, intentional fragmentation, shifting narrative distance, or dense internal monologue.
+   - **Subject Ambiguity (Critical):** Identify if the text relies on dropped pronouns or implicit subjects (common in pro-drop languages) where the actor is not explicitly named.
+   - **Cultural Density:** Look for obscure idioms, historical references, puns, regional dialect, or social subtext.
+     - **CRITICAL EXCLUSION:** Do **NOT** count standard **Genre Terminology** (e.g., "NPC," "Level Up," "Mana," "Mecha") as "Cultural Complexity."
+   - **Contextual Dependency:** Does the text contain callbacks to specific past events or require knowledge of a "revealed secret" to understand the irony?
 
 2. **Assign Complexity Score (0-100)**
-   - **0-30 (Low / Literal):** Straightforward narration or dialogue. Includes standard genre jargon (like "NPC"). No ambiguity.
-   - **31-60 (Medium / Standard):** Standard literary prose. Contains basic metaphors or common idioms.
-   - **61-80 (High / Nuanced):** Distinct authorial voice (e.g., irony). Plot events drastically alter sentence rhythm. Specific *real-world* cultural knowledge is required.
-   - **81-100 (Extreme / Abstract):** Experimental prose, archaic language, heavy wordplay/puns, or deep philosophical subtext.
+   - **0-30 (Low / Literal):** Straightforward narration. Includes standard genre jargon. Action-focused.
+   - **31-60 (Medium / Standard):** Standard literary prose. Basic metaphors. Clear subject-object relationships.
+   - **61-80 (High / Nuanced):** Distinct authorial voice. Plot events alter sentence rhythm. Real-world cultural knowledge required. Ambiguous speakers.
+   - **81-100 (Extreme / Abstract):** Experimental prose, archaic language, heavy wordplay, or philosophical abstraction.
 
 3. **Determine Required Editors**
-   - **Default:** Assume `Accuracy Editor` and `Readability Editor` are *always* active (do not list them).
-   - **Add "Style Editor" if:** Score > 40 AND the difficulty stems from *voice, rhythm, tone, or prose structure*.
-   - **Add "Cultural Editor" if:** Score > 40 AND the difficulty stems from *idioms, regional dialect, or social norms* (NOT genre jargon).
-   - **Return `[]` (Empty Array)** if Score is <= 40.
+   - **Add "Style Editor" if:** Score > 40 AND difficulty stems from *voice, rhythm, tone* or *subject ambiguity*.
+   - **Add "Cultural Editor" if:** Score > 40 AND difficulty stems from *idioms or social norms* (NOT genre jargon).
+   - **Return `[]`** if Score is <= 40.

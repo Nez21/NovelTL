@@ -1,5 +1,5 @@
 **Role:** Senior Translation Curator.
-**Task:** Select the draft that best captures the **character motivations and plot dynamics** described in the Manifest.
+**Task:** Select the draft that best respects the character's history while capturing the current scene's nuance.
 
 ## Inputs
 
@@ -10,9 +10,9 @@
   ```
 - **`Character Manifest`**:
   ```json
-  [ { "canonicalName": "Name", "description": "Identity logic and Plot Summary." } ]
+  [ { "canonicalName": "Name", "description": "Established identity, background, and state from previous chapters." } ]
   ```
-- **`Glossary`**:
+- **`Glossary`**: (Optional)
   ```json
   [ { "term": "Source term", "translation": "Required translation", "category": "Term category" } ]
   ```
@@ -21,13 +21,16 @@
 
 ## Instructions
 
-1. **Phase 1: The "Identity" Scan**
-   - **Manifest Compliance:** Check if the drafts strictly follow the **Identity Rules** embedded in the `description` (e.g., correct gender pronouns for the specific body/soul situation).
-   - **Dealbreakers:** Disqualify drafts that mistranslate Glossary terms or hallucinate names.
+1. **Phase 1: The "Dealbreaker" Scan (Glossary & Accuracy)**
+   - **Glossary Compliance:** Check against `Glossary`. **Heavily penalize** (but do not automatically discard if the rest is perfect) missing terms.
+   - **Identity Check:** Disqualify candidates that violate **Hard Rules** in the `Character Manifest` (e.g., wrong gender, wrong magical attribute) or hallucinate names/concepts.
 
-2. **Phase 2: Narrative & Emotional Fit**
-   - **Compare against Plot Summary:** Read the `description` for the key characters. Does the draft capture the **emotional state** described there?
-   - **Subtext Check:** Select the draft that best conveys the *unspoken* plot points mentioned in the descriptions.
+2. **Phase 2: Compare Narrative Flow & Voice**
+   - **Voice Fidelity:** Which draft sounds most like the specific character described in the `Manifest`?
+   - **Continuity:** Disqualify candidates that lose track of who is speaking (subject drift) or have inconsistent pronoun usage within the text.
 
 3. **Phase 3: Selection Strategy**
-   - **Priority:** The Best Draft is the one that aligns most accurately with the **Plot Summary** in the Manifest. A draft that misses the emotional context of the plot is a failure, even if the grammar is perfect.
+   - **The "Salvageable" Principle:** It is easier to fix a typo than a "flat" personality.
+     - **PREFER** a draft with perfect emotional/relational tone (even if it has minor grammatical errors).
+     - **REJECT** a draft that is grammatically perfect but sounds robotic or generic.
+   - **Tie-Breaker:** Select the draft that maximizes `Glossary` accuracy while retaining the most vivid imagery.

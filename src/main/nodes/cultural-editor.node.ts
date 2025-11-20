@@ -10,21 +10,38 @@ const systemPrompt = readFileSync(join(__dirname, './cultural-editor.prompt.md')
 
 export const CulturalErrorSchema = z.object({
   type: z
-    .enum(['Untranslated Idioms', 'Cultural Incongruity', 'Unnatural Collocations'])
-    .describe('The type of cultural/idiomatic fidelity error found.'),
+    .enum([
+      'Honorific Mismatch',
+      'Literal Idiom',
+      'Cultural Incongruity',
+      'Sanitization',
+      'Context Refusal'
+    ])
+    .describe('Issues related to cultural gaps, social hierarchy, or localization failures.'),
+  severity: z
+    .number()
+    .int()
+    .min(1)
+    .max(5)
+    .describe(
+      'Severity level: 1 = Minor awkward phrasing, 2 = Moderate cultural mismatch, 3 = Significant localization failure, 4 = High severity (broken social hierarchy), 5 = Critical (offensive taboo or major cultural violation).'
+    ),
+  confidence: z
+    .number()
+    .int()
+    .min(0)
+    .max(100)
+    .describe(
+      'Confidence in this specific error assessment from 0 (uncertain) to 100 (highly confident). Higher for clear cultural violations (e.g., honorific mismatches); lower when cultural adaptation requires nuanced judgment.'
+    ),
   sourceSegment: z
     .string()
-    .optional()
-    .describe(
-      'The specific segment from the source text where the cultural issue occurs (if applicable).'
-    ),
-  translatedSegment: z
-    .string()
-    .describe('The corresponding segment in the translated text where the cultural issue occurs.'),
+    .describe('The specific cultural reference, idiom, or honorific in the source.'),
+  translatedSegment: z.string().describe('The failed localization attempt.'),
   feedback: z
     .string()
     .describe(
-      'Detailed feedback explaining the cultural/idiomatic fidelity issue and how it affects the naturalness for native speakers.'
+      'Must include: (1) an explanation of the cultural misalignment, and (2) at least one suggested fix (partial correction, not the entire segment) with a suggested direction.'
     )
 })
 
@@ -76,9 +93,6 @@ ${JSON.stringify(state.styleContext)}
 
 ##Character Manifest##
 ${JSON.stringify(state.characterManifest)}
-
-##Glossary##
-${JSON.stringify(state.glossary)}
 
 ##Source Text##
 ${state.sourceText}`.trim()

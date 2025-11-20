@@ -10,15 +10,31 @@ const systemPrompt = readFileSync(join(__dirname, './readability-editor.prompt.m
 
 export const ReadabilityErrorSchema = z.object({
   type: z
-    .enum(['Unnatural Syntax', 'Pacing Disruption'])
-    .describe('The type of readability/flow error found.'),
+    .enum(['Unnatural Flow', 'Ambiguity', 'Rhythm Failure'])
+    .describe('Mechanical or flow-based linguistic errors.'),
+  severity: z
+    .number()
+    .int()
+    .min(1)
+    .max(5)
+    .describe(
+      'Severity level: 1 = Minor stylistic preference, 2 = Moderate flow issue, 3 = Significant readability problem, 4 = High severity (confusing sentence structure), 5 = Critical (unreadable or grammatically broken text).'
+    ),
+  confidence: z
+    .number()
+    .int()
+    .min(0)
+    .max(100)
+    .describe(
+      'Confidence in this specific error assessment from 0 (uncertain) to 100 (highly confident). Higher for objective grammar errors; lower for subjective flow preferences.'
+    ),
   translatedSegment: z
     .string()
-    .describe('The specific segment from the translated text where the readability issue occurs.'),
+    .describe('The specific segment that is clunky, grammatically incorrect, or hard to read.'),
   feedback: z
     .string()
     .describe(
-      'Detailed feedback explaining the readability/flow issue and how it affects the naturalness of the prose.'
+      'Must include: (1) an explanation of the awkwardness, and (2) at least one suggested fix (partial correction, not the entire segment) with smoother phrasing.'
     )
 })
 
@@ -58,8 +74,8 @@ export const readabilityEditorNode = async (
 ##Target Language##
 ${state.targetLanguage}
 
-##Style Context##
-${JSON.stringify(state.styleContext)}`.trim()
+##Source Text##
+${state.sourceText}`.trim()
 
   const dynamicUserMessage = `
 ##Translated Text##
