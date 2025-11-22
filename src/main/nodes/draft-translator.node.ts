@@ -3,19 +3,12 @@ import { join } from 'node:path'
 import type { RunnableConfig } from '@langchain/core/runnables'
 import { ChatOpenAI } from '@langchain/openai'
 import pLimit from 'p-limit'
-import { z } from 'zod'
 import { cfg } from '../config'
 import { CONCURRENT_LIMIT, DRAFT_CANDIDATE_COUNT } from '../constant'
 import { fixAnnotatedText, getParagraphsInRange } from '../utils/text-paragraph.utils'
 import type { TranslateOverallState } from '../workflows/translate.workflow'
 
 const systemPrompt = readFileSync(join(__dirname, './draft-translator.prompt.md'), 'utf-8')
-
-export const DraftTranslatorOutputSchema = z.object({
-  translatedText: z
-    .string()
-    .describe('The translated text segment in the target language, maintaining fidelity and style.')
-})
 
 export const draftTranslatorNode = async (
   state: TranslateOverallState,
@@ -34,7 +27,7 @@ export const draftTranslatorNode = async (
     temperature: 0.7,
     configuration: { baseURL: 'https://openrouter.ai/api/v1', apiKey: cfg.openrouterApiKey },
     modelKwargs: { reasoning: { max_tokens: 1024 } }
-  }).withStructuredOutput(DraftTranslatorOutputSchema)
+  })
 
   const limit = pLimit(CONCURRENT_LIMIT)
 
@@ -73,7 +66,10 @@ ${JSON.stringify(scene)}`.trim()
       const candidatePromises = Array.from({ length: DRAFT_CANDIDATE_COUNT }, () =>
         candidateLimit(async () => {
           const result = await model.invoke(messages)
-          const translatedSegment = result.translatedText
+          const translatedSegment =
+            typeof result.content === 'string'
+              ? result.content
+              : result.content.map((block) => block.text).join('\n')
 
           return fixAnnotatedText(translatedSegment)
         })

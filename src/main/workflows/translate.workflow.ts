@@ -45,46 +45,18 @@ export const TranslateOverallStateSchema = TranslateInputStateSchema.extend({
     .string()
     .optional()
     .describe('The rationale for why a specific draft candidate was selected.'),
-  accuracyScore: z
-    .number()
-    .int()
-    .min(0)
-    .max(100)
-    .optional()
-    .describe('The accuracy score assigned by the accuracy editor (0-100).'),
   accuracyFeedback: z
     .array(AccuracyErrorSchema)
     .optional()
     .describe('An array of specific accuracy errors found by the accuracy editor.'),
-  styleScore: z
-    .number()
-    .int()
-    .min(0)
-    .max(100)
-    .optional()
-    .describe('The nuance & style score assigned by the style editor (0-100).'),
   styleFeedback: z
     .array(StyleErrorSchema)
     .optional()
     .describe('An array of specific style/nuance errors found by the style editor.'),
-  readabilityScore: z
-    .number()
-    .int()
-    .min(0)
-    .max(100)
-    .optional()
-    .describe('The readability score assigned by the readability editor (0-100).'),
   readabilityFeedback: z
     .array(ReadabilityErrorSchema)
     .optional()
     .describe('An array of specific readability/flow errors found by the readability editor.'),
-  holisticScore: z
-    .number()
-    .int()
-    .min(0)
-    .max(100)
-    .optional()
-    .describe('The holistic score assigned by the lead editor (0-100).'),
   editCount: z.number().int().min(0).describe('The number of times the text has been re-edited.'),
   sceneAnalysis: SceneAnalystOutputSchema.optional().describe(
     'Scene segmentation and metadata analysis of the source text.'
@@ -92,9 +64,7 @@ export const TranslateOverallStateSchema = TranslateInputStateSchema.extend({
 })
 
 export const TranslateOutputStateSchema = TranslateOverallStateSchema.pick({
-  translatedText: true,
-  holisticScore: true,
-  sceneAnalysis: true
+  translatedText: true
 })
 
 export type TranslateInputState = z.infer<typeof TranslateInputStateSchema>
@@ -122,7 +92,7 @@ const builder = new StateGraph({
   .addEdge(['accuracy-editor', 'style-editor', 'readability-editor'], 'synthesis-editor')
   .addConditionalEdges(
     'synthesis-editor',
-    (state) => ((state.editCount || 0) === 1 ? 'CHECK' : 'END'),
+    (state) => ((state.editCount || 0) < 2 ? 'CHECK' : 'END'),
     {
       CHECK: 'accuracy-editor',
       END: '__end__'

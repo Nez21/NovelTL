@@ -2,20 +2,11 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { RunnableConfig } from '@langchain/core/runnables'
 import { ChatOpenAI } from '@langchain/openai'
-import { z } from 'zod'
 import { cfg } from '../config'
 import { fixAnnotatedText, removeParagraphIds } from '../utils/text-paragraph.utils'
 import type { TranslateOverallState } from '../workflows/translate.workflow'
 
 const systemPrompt = readFileSync(join(__dirname, './synthesis-editor.prompt.md'), 'utf-8')
-
-export const SynthesisEditorOutputSchema = z.object({
-  revisedText: z
-    .string()
-    .describe(
-      'The complete revised text with all paragraph IDs preserved. If paragraphs are split, use sub-tags like [P1a] and [P1b].'
-    )
-})
 
 export const synthesisEditorNode = async (
   state: TranslateOverallState,
@@ -37,33 +28,29 @@ export const synthesisEditorNode = async (
     paragraphId: error.paragraphId,
     type: error.type,
     translatedSegment: error.translatedSegment,
-    feedback: error.feedback
+    feedback: error.feedback,
+    confidence: error.confidence
   }))
 
   const styleReport = (state.styleFeedback || []).map((error) => ({
     paragraphId: error.paragraphId,
     type: error.type,
     translatedSegment: error.translatedSegment,
-    feedback: error.feedback
+    feedback: error.feedback,
+    confidence: error.confidence
   }))
 
   const readabilityReport = (state.readabilityFeedback || []).map((error) => ({
     paragraphId: error.paragraphId,
     type: error.type,
     translatedSegment: error.translatedSegment,
-    feedback: error.feedback
+    feedback: error.feedback,
+    confidence: error.confidence
   }))
-
-  const scores = [state.accuracyScore, state.styleScore, state.readabilityScore].filter(
-    Boolean
-  ) as number[]
-  const holisticScore =
-    scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0
 
   if (!accuracyReport.length && !styleReport.length && !readabilityReport.length) {
     return {
       translatedText: removeParagraphIds(state.translatedText || ''),
-      holisticScore: state.accuracyScore,
       editCount: Number.MAX_SAFE_INTEGER
     }
   }
@@ -73,7 +60,7 @@ export const synthesisEditorNode = async (
     temperature: 0.1,
     configuration: { baseURL: 'https://openrouter.ai/api/v1', apiKey: cfg.openrouterApiKey },
     modelKwargs: { reasoning: { max_tokens: 1024 } }
-  }).withStructuredOutput(SynthesisEditorOutputSchema)
+  })
 
   const userPrompt = `
 ##Target Language##
@@ -109,11 +96,18 @@ ${JSON.stringify({ accuracyReport, styleReport, readabilityReport })}`.trim()
   ]
 
   const result = await model.invoke(messages)
+  const revisedText =
+    typeof result.content === 'string'
+      ? result.content
+      : result.content.map((block) => block.text).join('\n')
+  const editCount = (state.editCount || 0) + 1
 
   return {
-    translatedText: fixAnnotatedText(result.revisedText),
-    holisticScore,
-    editCount: (state.editCount || 0) + 1,
+    translatedText:
+      editCount < 2
+        ? fixAnnotatedText(revisedText)
+        : removeParagraphIds(fixAnnotatedText(revisedText)),
+    editCount,
     accuracyFeedback: [],
     styleFeedback: [],
     readabilityFeedback: []

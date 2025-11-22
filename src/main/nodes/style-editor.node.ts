@@ -35,14 +35,6 @@ export const StyleErrorSchema = z.object({
 })
 
 export const StyleEditorOutputSchema = z.object({
-  styleScore: z
-    .number()
-    .int()
-    .min(0)
-    .max(100)
-    .describe(
-      'A nuance & style score from 0 (completely flat, wrong tone) to 100 (perfectly captures the authorial voice).'
-    ),
   styleFeedback: z
     .array(StyleErrorSchema)
     .describe(
@@ -56,7 +48,6 @@ export const styleEditorNode = async (
 ): Promise<Partial<TranslateOverallState>> => {
   if (!state.translatedText) {
     return {
-      styleScore: 0,
       styleFeedback: []
     }
   }
@@ -79,7 +70,7 @@ export const styleEditorNode = async (
     model: 'google/gemini-2.5-flash',
     temperature: 0.3,
     configuration: { baseURL: 'https://openrouter.ai/api/v1', apiKey: cfg.openrouterApiKey },
-    modelKwargs: { reasoning: { max_tokens: 2048 } }
+    modelKwargs: { reasoning: { max_tokens: 1024 } }
   }).withStructuredOutput(StyleEditorOutputSchema)
 
   const limit = pLimit(CONCURRENT_LIMIT)
@@ -132,12 +123,8 @@ ${translatedSegment}`.trim()
   const sceneResults = await Promise.all(sceneStylePromises)
 
   const allErrors = sceneResults.flatMap((result) => result.styleFeedback)
-  const averageScore = Math.round(
-    sceneResults.reduce((sum, result) => sum + result.styleScore, 0) / sceneResults.length
-  )
 
   return {
-    styleScore: averageScore,
     styleFeedback: allErrors
   }
 }

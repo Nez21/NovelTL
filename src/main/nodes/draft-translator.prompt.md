@@ -59,3 +59,13 @@
 
 - **Atmosphere:** Parse `styleGuide` to influence sentence structure and vocabulary weight (e.g., "Urgent" = concise; "Noble" = elevated vocabulary).
 - **Fidelity:** Preserve the literal action and meaning. Do not add new adjectives or actions unless strictly necessary to convey the _tone_ requested in the style guide.
+
+## Output Format
+
+**CRITICAL:** Output ONLY the translated text with paragraph IDs. Do NOT include:
+- Explanations or commentary
+- Metadata or JSON structures
+- Notes or annotations
+- Any text outside the actual translation
+
+Your response must be the pure translated text, starting with `[P#]` tags and containing nothing else.

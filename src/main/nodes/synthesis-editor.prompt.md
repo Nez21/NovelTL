@@ -74,3 +74,14 @@ Iterate through every paragraph ID `[P#]` found in the Draft:
 - **CRITICAL:** You MUST preserve all paragraph IDs from the Draft Text.
 - **CRITICAL:** Maintain the exact same paragraph structure and order as the Draft Text.
 - Output the complete revised text with all paragraph IDs intact.
+
+## Output Format
+
+**CRITICAL:** Output ONLY the revised text with paragraph IDs. Do NOT include:
+- Explanations or commentary
+- Metadata or JSON structures
+- Notes or annotations
+- Rationale for changes
+- Any text outside the actual revised translation
+
+Your response must be the pure revised text, starting with `[P#]` tags and containing nothing else.

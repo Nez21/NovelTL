@@ -35,14 +35,6 @@ export const ReadabilityErrorSchema = z.object({
 })
 
 export const ReadabilityEditorOutputSchema = z.object({
-  readabilityScore: z
-    .number()
-    .int()
-    .min(0)
-    .max(100)
-    .describe(
-      'A readability score from 0 (unreadable) to 100 (flawless, natural prose that matches the style).'
-    ),
   readabilityFeedback: z
     .array(ReadabilityErrorSchema)
     .describe(
@@ -56,7 +48,6 @@ export const readabilityEditorNode = async (
 ): Promise<Partial<TranslateOverallState>> => {
   if (!state.translatedText) {
     return {
-      readabilityScore: 0,
       readabilityFeedback: []
     }
   }
@@ -64,7 +55,6 @@ export const readabilityEditorNode = async (
   const paragraphs = parseParagraphs(state.translatedText)
   if (paragraphs.length === 0) {
     return {
-      readabilityScore: 0,
       readabilityFeedback: []
     }
   }
@@ -133,12 +123,8 @@ ${nextContext || '(No next context)'}`.trim()
   const windowResults = await Promise.all(windowPromises)
 
   const allErrors = windowResults.flatMap((result) => result.readabilityFeedback)
-  const averageScore = Math.round(
-    windowResults.reduce((sum, result) => sum + result.readabilityScore, 0) / windowResults.length
-  )
 
   return {
-    readabilityScore: averageScore,
     readabilityFeedback: allErrors
   }
 }

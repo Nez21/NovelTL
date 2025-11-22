@@ -295,6 +295,7 @@ export function fixAnnotatedText(translatedText: string): string {
 
   let fixedText = translatedText
 
+  fixedText = fixedText.replace(/\[(\d+)\]/g, '[P$1]')
   fixedText = fixedText.replace(/([^\n])(\[P\d+\])/g, '$1\n$2')
   fixedText = fixedText.replace(/(\[P\d+\])([^\s\n])/g, '$1 $2')
   fixedText = fixedText.replace(/(\[P\d+\])\s+/g, '$1 ')
