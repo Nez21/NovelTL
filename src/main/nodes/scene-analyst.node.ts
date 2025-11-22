@@ -20,7 +20,9 @@ export const SceneSchema = z.object({
   location: z.string().describe('The physical setting of the scene.'),
   styleGuide: z
     .string()
-    .describe("Format: 'Atmosphere | Pacing | Tone' (e.g., 'Chaotic | Rapid | Tense')."),
+    .describe(
+      "A dense 3-part directive following the VSF Formula: 1. Vibe (Emotional atmosphere), 2. Syntax (Sentence rhythm/structure), 3. Focus (Sensory or vocabulary priority). Example: 'Claustrophobic panic. Use staccato, fragmented sentences. Focus on auditory hallucinations."
+    ),
   activeCast: z
     .array(z.string())
     .describe('List of all characters present. Use their CURRENTLY known alias.'),

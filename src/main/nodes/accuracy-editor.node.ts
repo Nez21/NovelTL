@@ -80,7 +80,7 @@ export const accuracyEditorNode = async (
     model: 'google/gemini-2.5-flash',
     temperature: 0.1,
     configuration: { baseURL: 'https://openrouter.ai/api/v1', apiKey: cfg.openrouterApiKey },
-    modelKwargs: { reasoning: { max_tokens: -1 } }
+    modelKwargs: { reasoning: { max_tokens: 2048 } }
   }).withStructuredOutput(AccuracyEditorOutputSchema)
 
   const limit = pLimit(CONCURRENT_LIMIT)

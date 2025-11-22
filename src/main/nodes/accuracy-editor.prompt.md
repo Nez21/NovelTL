@@ -10,14 +10,24 @@
   [ { "term": "Source term", "translation": "Required translation", "category": "Term category" } ]
   ```
 - **`Scene Context`**: Scene context from the Scene Analyst.
-   ```json
-     {
-       "styleGuide": "Atmosphere | Pacing | Tone",
-       "hierarchy": ["A > B", "C = D"],
-       "criticalFlags": ["Constraint 1", "[P#] Name -> Alias"],
-       "activeCast": ["Name 1", "Name 2"]
-     }
-   ```
+- **`Scene Context`**: Scene context from the Scene Analyst.
+  ```json
+  {
+    "styleGuide": "[Vibe]. Use [Syntax/Rhythm]. Focus on [Sensory/Vocabulary].",
+    "hierarchy": [
+      "Dominant Char > Submissive Char (Context: e.g., Formal/Fearful)",
+      "Peer Char = Peer Char (Context: e.g., Friendly/Hostile)"
+    ],      
+    "criticalFlags": [
+      "[P#] Logic Trigger (e.g., Injury/Magic) -> Translation Constraint (e.g., Specific Verbs)",
+      "[P#] Identity Change -> [New Name/Pronouns]"
+    ],      
+    "activeCast": [
+      "Character Name (Current State)",
+      "Character Name"
+    ]
+  }
+  ```
 
 ## Instructions
 
@@ -54,14 +64,14 @@
   - If `A > B`: Flag if B speaks to A using slang or disrespect (unless Source is explicitly insulting). Include the paragraph ID.
   - If `A < B`: Flag if B speaks to A using excessive honorifics or stiff formality (unless Source is ironic). Include the paragraph ID.
 
+### Constraints
+
+1. **Justified Character Breaks:** If `Scene Context` (e.g., "Drunk") conflicts with Character History (e.g., "Polite"), the Scene Context wins. Do not flag rude speech if the character is drunk.
+
+2. **Literal Idioms:** If the draft translates an idiom dynamically (e.g., "Eating Vinegar" -> "Jealousy"), this is Correct. Only flag if the translator made it literal (e.g., actually drinking vinegar) when the context implies abstract emotion.
+
 ## Output Requirements
 
 - **CRITICAL:** For every error you report, you MUST include the exact paragraph ID (`[P#]`) from the `Source Segment` where the error occurs.
 - Extract the paragraph ID from the source text where the problematic content appears.
 - If an error spans multiple paragraphs, report each paragraph ID separately or use the primary paragraph ID where the error is most evident.
-
-### Negative Constraints (DO NOT FLAG)
-
-1. **Justified Character Breaks:** If `Scene Context` (e.g., "Drunk") conflicts with Character History (e.g., "Polite"), the Scene Context wins. Do not flag rude speech if the character is drunk.
-
-2. **Literal Idioms:** If the draft translates an idiom dynamically (e.g., "Eating Vinegar" -> "Jealousy"), this is Correct. Only flag if the translator made it literal (e.g., actually drinking vinegar) when the context implies abstract emotion.

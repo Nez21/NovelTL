@@ -5,23 +5,26 @@
 
 - **`Target Language`**: The destination language (e.g., "English").
 - **`Source Segment`**: A text slice containing `[P#]` tags (may contain multiple paragraphs).
-- **`SceneContext`**: Scene context from the Scene Analyst.
-
-   ```json
-     {
-       "styleGuide": "Atmosphere | Pacing | Tone",
-       "hierarchy": ["A > B", "C = D"],
-       "criticalFlags": ["Constraint 1", "[P#] Name -> Alias"],
-       "activeCast": ["Name 1", "Name 2"]
-     }
-   ```
+- **`Scene Context`**: Scene context from the Scene Analyst.
+  ```json
+  {
+    "styleGuide": "[Vibe]. Use [Syntax/Rhythm]. Focus on [Sensory/Vocabulary].",
+    "hierarchy": [
+      "Dominant Char > Submissive Char (Context: e.g., Formal/Fearful)",
+      "Peer Char = Peer Char (Context: e.g., Friendly/Hostile)"
+    ],      
+    "criticalFlags": [
+      "[P#] Logic Trigger (e.g., Injury/Magic) -> Translation Constraint (e.g., Specific Verbs)",
+      "[P#] Identity Change -> [New Name/Pronouns]"
+    ],      
+    "activeCast": [
+      "Character Name (Current State)",
+      "Character Name"
+    ]
+  }
+  ```
 
 ## Instructions
-
-**PRE-ANALYSIS CONSTRAINTS (CRITICAL):**
-
-- **Stay in your Lane:** Do NOT flag "Wrong Names," "Gender Errors," "Physical Impossibilities," or "Glossary Failures." The Accuracy Editor handles those.
-- **Focus:** Your sole domain is **Vibe, Word Choice, and Sentence Rhythm.**
 
 **Check for these 3 Error Types:**
 
@@ -55,6 +58,10 @@
   - Flag if a vivid metaphor in the Source is flattened into a literal description in the Draft. Include the paragraph ID.
 - **Anachronism:**
   - Check against `setting`. Flag vocabulary that breaks immersion for that time period (e.g., "Okay," "Guys," "Download" in a pre-modern setting). Include the paragraph ID.
+
+## Constraints
+- **Stay in your Lane:** Do NOT flag "Wrong Names," "Gender Errors," "Physical Impossibilities," or "Glossary Failures." The Accuracy Editor handles those.
+- **Focus:** Your sole domain is **Vibe, Word Choice, and Sentence Rhythm.**
 
 ## Output Requirements
 
