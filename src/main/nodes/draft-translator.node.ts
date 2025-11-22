@@ -3,9 +3,11 @@ import { join } from 'node:path'
 import { HumanMessage, SystemMessage } from '@langchain/core/messages'
 import type { RunnableConfig } from '@langchain/core/runnables'
 import { ChatOpenAI } from '@langchain/openai'
+import pLimit from 'p-limit'
 import { z } from 'zod'
 import { cfg } from '../config'
-import { DRAFT_CANDIDATE_COUNT } from '../constant'
+import { CONCURRENT_LIMIT, DRAFT_CANDIDATE_COUNT } from '../constant'
+import { fixTranslatedText, getParagraphsInRange } from '../utils/text-paragraph.utils'
 import type { TranslateOverallState } from '../workflows/translate.workflow'
 
 const systemPrompt = readFileSync(join(__dirname, './draft-translator.prompt.md'), 'utf-8')
@@ -20,6 +22,14 @@ export const draftTranslatorNode = async (
   state: TranslateOverallState,
   _config: RunnableConfig
 ): Promise<Partial<TranslateOverallState>> => {
+  if (!state.sceneAnalysis?.scenes || state.sceneAnalysis.scenes.length === 0) {
+    throw new Error('Scene analysis is required for scene-based translation')
+  }
+
+  if (!state.sourceText) {
+    throw new Error('Source text is required')
+  }
+
   const model = new ChatOpenAI({
     model: 'google/gemini-2.5-flash',
     temperature: 0.7,
@@ -27,33 +37,54 @@ export const draftTranslatorNode = async (
     modelKwargs: { reasoning: { max_tokens: -1 } }
   }).withStructuredOutput(DraftTranslatorOutputSchema)
 
-  const userPrompt = `
+  const limit = pLimit(CONCURRENT_LIMIT)
+
+  const sceneTranslationPromises = state.sceneAnalysis.scenes.map((scene) => {
+    return limit(async () => {
+      const sourceSegment = getParagraphsInRange(state.sourceText, scene.startTag, scene.endTag)
+
+      const userPrompt = `
 ##Target Language##
 ${state.targetLanguage}
 
-##Style Context##
-${JSON.stringify(state.styleContext)}
-
-##Character Manifest##
-${JSON.stringify(state.characterManifest)}
+##Source Segment##
+${sourceSegment}
 
 ##Glossary##
 ${JSON.stringify(state.glossary)}
 
-##Source Text##
-${state.sourceText}`.trim()
+##Scene Context##
+${JSON.stringify(scene)}`.trim()
 
-  const messages = [new SystemMessage(systemPrompt), new HumanMessage(userPrompt)]
+      const messages = [new SystemMessage(systemPrompt), new HumanMessage(userPrompt)]
 
-  const candidatePromises = Array.from({ length: DRAFT_CANDIDATE_COUNT }, () =>
-    model.invoke(messages)
-  )
-  const candidates = await Promise.all(candidatePromises)
+      const candidateLimit = pLimit(CONCURRENT_LIMIT)
+      const candidatePromises = Array.from({ length: DRAFT_CANDIDATE_COUNT }, () =>
+        candidateLimit(async () => {
+          const result = await model.invoke(messages)
+          const translatedSegment = result.translatedText
 
-  const draftCandidates = candidates.map((result) => result.translatedText)
+          try {
+            return fixTranslatedText(translatedSegment, sourceSegment)
+          } catch (error) {
+            if (error instanceof Error) {
+              throw new Error(
+                `Invalid translated draft format for scene [${scene.startTag}-${scene.endTag}]: ${error.message}`
+              )
+            }
+            throw error
+          }
+        })
+      )
+
+      const validatedCandidates = await Promise.all(candidatePromises)
+      return validatedCandidates
+    })
+  })
+
+  const sceneTranslations = await Promise.all(sceneTranslationPromises)
 
   return {
-    iterationCount: 1,
-    draftCandidates
+    sceneDrafts: sceneTranslations
   }
 }
