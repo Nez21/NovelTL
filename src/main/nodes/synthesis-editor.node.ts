@@ -4,7 +4,7 @@ import type { RunnableConfig } from '@langchain/core/runnables'
 import { ChatOpenAI } from '@langchain/openai'
 import { z } from 'zod'
 import { cfg } from '../config'
-import { fixTranslatedText, removeParagraphIds } from '../utils/text-paragraph.utils'
+import { fixAnnotatedText, removeParagraphIds } from '../utils/text-paragraph.utils'
 import type { TranslateOverallState } from '../workflows/translate.workflow'
 
 const systemPrompt = readFileSync(join(__dirname, './synthesis-editor.prompt.md'), 'utf-8')
@@ -111,7 +111,7 @@ ${JSON.stringify({ accuracyReport, styleReport, readabilityReport })}`.trim()
   const result = await model.invoke(messages)
 
   return {
-    translatedText: fixTranslatedText(result.revisedText, state.translatedText),
+    translatedText: fixAnnotatedText(result.revisedText),
     holisticScore,
     editCount: (state.editCount || 0) + 1,
     accuracyFeedback: [],

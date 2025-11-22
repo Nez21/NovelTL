@@ -6,7 +6,7 @@ import pLimit from 'p-limit'
 import { z } from 'zod'
 import { cfg } from '../config'
 import { CONCURRENT_LIMIT, DRAFT_CANDIDATE_COUNT } from '../constant'
-import { fixTranslatedText, getParagraphsInRange } from '../utils/text-paragraph.utils'
+import { fixAnnotatedText, getParagraphsInRange } from '../utils/text-paragraph.utils'
 import type { TranslateOverallState } from '../workflows/translate.workflow'
 
 const systemPrompt = readFileSync(join(__dirname, './draft-translator.prompt.md'), 'utf-8')
@@ -75,16 +75,7 @@ ${JSON.stringify(scene)}`.trim()
           const result = await model.invoke(messages)
           const translatedSegment = result.translatedText
 
-          try {
-            return fixTranslatedText(translatedSegment, sourceSegment)
-          } catch (error) {
-            if (error instanceof Error) {
-              throw new Error(
-                `Invalid translated draft format for scene [${scene.startTag}-${scene.endTag}]: ${error.message}`
-              )
-            }
-            throw error
-          }
+          return fixAnnotatedText(translatedSegment)
         })
       )
 

@@ -39,6 +39,11 @@ Task: Polish the `Active Window` for native-level fluency and rhythm. Use `Previ
    - If `Active Window` starts with a fragment (e.g., "And died.") that grammatically completes a sentence in `Previous Context`, this is **Valid**. Do not flag it as a syntax error.
 3. **Ignore Content:**
    - Do not guess missing info. Judge only the prose quality.
+4. **DO NOT Merge or Split Paragraphs:**
+   - **CRITICAL:** You MUST preserve the exact paragraph structure. Each paragraph ID (`[P#]`) must remain as a separate paragraph.
+   - Do NOT suggest combining or merging multiple paragraphs into one.
+   - Do NOT recommend splitting a single paragraph into multiple paragraphs unless there is a clear grammatical or structural error that requires it.
+   - Your role is to improve readability WITHIN each paragraph, not to restructure the paragraph boundaries.
 
 ## Output Requirements
 

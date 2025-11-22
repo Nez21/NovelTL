@@ -3,7 +3,7 @@ import {
   addParagraphIds,
   ensureParagraphIds,
   extractParagraphIds,
-  fixTranslatedText,
+  fixAnnotatedText,
   getParagraphById,
   getParagraphNumber,
   getParagraphsInRange,
@@ -83,6 +83,10 @@ describe('hasParagraphIds', () => {
   it('should handle null/undefined', () => {
     expect(hasParagraphIds('')).toBe(false)
   })
+
+  it('should return true for merged paragraph IDs', () => {
+    expect(hasParagraphIds('[P1,2] Merged content')).toBe(true)
+  })
 })
 
 describe('ensureParagraphIds', () => {
@@ -134,6 +138,26 @@ describe('getParagraphNumber', () => {
 })
 
 describe('parseParagraphs', () => {
+  it('should parse merged paragraph IDs', () => {
+    const text = '[P1,2] Merged content\n[P3] Third'
+    const result = parseParagraphs(text)
+    expect(result).toHaveLength(2)
+    expect(result[0].id).toBe('[P1,2]')
+    expect(result[0].content).toBe('Merged content')
+    expect(result[1].id).toBe('[P3]')
+    expect(result[1].content).toBe('Third')
+  })
+
+  it('should validate sequential numbering with merged paragraphs', () => {
+    const text = '[P1,2] Merged\n[P3] Third'
+    const result = parseParagraphs(text)
+    expect(result).toHaveLength(2)
+  })
+
+  it('should throw error for non-sequential merged paragraphs', () => {
+    const text = '[P1,2] Merged\n[P4] Fourth'
+    expect(() => parseParagraphs(text)).toThrow('Non-sequential paragraph numbering')
+  })
   it('should parse valid paragraphs with sequential IDs', () => {
     const text = '[P1] First paragraph.\n[P2] Second paragraph.\n[P3] Third paragraph.'
     const result = parseParagraphs(text)
@@ -234,6 +258,20 @@ describe('mapParagraphs', () => {
     expect(result).toHaveLength(1)
     expect(result[0].target).toBeUndefined()
   })
+
+  it('should map source paragraphs to merged target paragraphs', () => {
+    const source = '[P1] First\n[P2] Second\n[P3] Third'
+    const target = '[P1,2] First Second\n[P3] Third'
+    const result = mapParagraphs(source, target)
+
+    expect(result).toHaveLength(3)
+    expect(result[0].source.id).toBe('[P1]')
+    expect(result[0].target?.id).toBe('[P1,2]')
+    expect(result[1].source.id).toBe('[P2]')
+    expect(result[1].target?.id).toBe('[P1,2]')
+    expect(result[2].source.id).toBe('[P3]')
+    expect(result[2].target?.id).toBe('[P3]')
+  })
 })
 
 describe('getParagraphById', () => {
@@ -271,6 +309,18 @@ describe('getParagraphById', () => {
   it('should return undefined for empty text', () => {
     expect(getParagraphById('', '[P1]')).toBeUndefined()
   })
+
+  it('should find paragraph in merged format', () => {
+    const text = '[P1,2] Merged content\n[P3] Third'
+    const result = getParagraphById(text, '[P1]')
+    expect(result).toBeDefined()
+    expect(result?.id).toBe('[P1,2]')
+    expect(result?.content).toBe('Merged content')
+
+    const result2 = getParagraphById(text, '[P2]')
+    expect(result2).toBeDefined()
+    expect(result2?.id).toBe('[P1,2]')
+  })
 })
 
 describe('getParagraphsInRange', () => {
@@ -280,6 +330,12 @@ describe('getParagraphsInRange', () => {
   it('should extract a range of paragraphs', () => {
     const result = getParagraphsInRange(sampleText, '[P2]', '[P4]')
     expect(result).toBe('[P2] Second paragraph.\n[P3] Third paragraph.\n[P4] Fourth paragraph.')
+  })
+
+  it('should handle merged paragraphs in range', () => {
+    const textWithMerged = '[P1] First\n[P2,3] Merged second and third\n[P4] Fourth'
+    const result = getParagraphsInRange(textWithMerged, '[P2]', '[P3]')
+    expect(result).toContain('[P2,3]')
   })
 
   it('should throw error when startNum > endNum', () => {
@@ -301,14 +357,18 @@ describe('getParagraphsInRange', () => {
   it('should throw error when startNum is out of bounds (greater than total)', () => {
     expect(() => getParagraphsInRange(sampleText, '[P10]', '[P15]')).toThrow('Range out of bounds')
   })
+
+  it('should handle merged paragraphs in range', () => {
+    const textWithMerged = '[P1] First\n[P2,3] Merged second and third\n[P4] Fourth'
+    const result = getParagraphsInRange(textWithMerged, '[P2]', '[P3]')
+    expect(result).toContain('[P2,3]')
+  })
 })
 
-describe('fixTranslatedText', () => {
-  const sourceSegment = '[P2] First paragraph.\n[P3] Second paragraph.\n[P4] Third paragraph.'
-
+describe('fixAnnotatedText', () => {
   it('should return valid text without fixing', () => {
     const translatedText = '[P2] First paragraph.\n[P3] Second paragraph.\n[P4] Third paragraph.'
-    const result = fixTranslatedText(translatedText, sourceSegment)
+    const result = fixAnnotatedText(translatedText)
     expect(result).toBe(translatedText)
     expect(result).toContain('\n')
     expect(result.split('\n').length).toBe(3)
@@ -317,39 +377,34 @@ describe('fixTranslatedText', () => {
   it('should fix missing newline before paragraph ID', () => {
     const translatedText =
       'Some text[P2] First paragraph.\n[P3] Second paragraph.\n[P4] Third paragraph.'
-    const result = fixTranslatedText(translatedText, sourceSegment)
-    expect(result).toContain('[P2]')
+    const result = fixAnnotatedText(translatedText)
+    expect(result).toMatch(/^\[P2\]/)
     expect(result).toContain('[P3]')
     expect(result).toContain('[P4]')
-    expect(result).toContain('\n')
-    expect(result.split('\n').length).toBe(3)
+    expect(result).not.toContain('Some text')
   })
 
   it('should fix missing space after paragraph ID', () => {
     const translatedText = '[P2]First paragraph.\n[P3]Second paragraph.\n[P4]Third paragraph.'
-    const result = fixTranslatedText(translatedText, sourceSegment)
+    const result = fixAnnotatedText(translatedText)
     expect(result).toContain('[P2] First')
     expect(result).toContain('[P3] Second')
     expect(result).toContain('[P4] Third')
-    expect(result).toContain('\n')
-    expect(result.split('\n').length).toBe(3)
   })
 
   it('should fix multiple spaces after paragraph ID', () => {
     const translatedText =
       '[P2]   First paragraph.\n[P3]    Second paragraph.\n[P4]  Third paragraph.'
-    const result = fixTranslatedText(translatedText, sourceSegment)
+    const result = fixAnnotatedText(translatedText)
     expect(result).toContain('[P2] First')
     expect(result).toContain('[P3] Second')
     expect(result).toContain('[P4] Third')
-    expect(result).toContain('\n')
-    expect(result.split('\n').length).toBe(3)
   })
 
   it('should fix multiple consecutive newlines', () => {
     const translatedText =
       '[P2] First paragraph.\n\n\n[P3] Second paragraph.\n\n\n[P4] Third paragraph.'
-    const result = fixTranslatedText(translatedText, sourceSegment)
+    const result = fixAnnotatedText(translatedText)
     const lines = result.split('\n').filter((line) => line.trim())
     expect(lines.length).toBe(3)
     expect(lines[0]).toContain('[P2]')
@@ -360,141 +415,101 @@ describe('fixTranslatedText', () => {
   it('should append lines without paragraph IDs to previous line', () => {
     const translatedText =
       '[P2] First paragraph.\nContinuation text.\n[P3] Second paragraph.\n[P4] Third paragraph.'
-    const result = fixTranslatedText(translatedText, sourceSegment)
+    const result = fixAnnotatedText(translatedText)
     expect(result).toContain('[P2] First paragraph. Continuation text.')
     expect(result).toContain('[P3] Second paragraph.')
     expect(result).toContain('[P4] Third paragraph.')
-    expect(result).toContain('\n')
-    expect(result.split('\n').length).toBe(3)
   })
 
   it('should fix combined formatting issues', () => {
     const translatedText =
       'Prefix[P2]First paragraph.\n\n\n[P3]   Second paragraph.\n[P4]Third paragraph.'
-    const result = fixTranslatedText(translatedText, sourceSegment)
+    const result = fixAnnotatedText(translatedText)
     expect(result).toContain('[P2] First')
     expect(result).toContain('[P3] Second')
     expect(result).toContain('[P4] Third')
-    expect(result).toContain('\n')
-    expect(result.split('\n').length).toBe(3)
   })
 
-  it('should throw error for empty translated text', () => {
-    expect(() => fixTranslatedText('', sourceSegment)).toThrow('Translated text is empty')
-    expect(() => fixTranslatedText('   ', sourceSegment)).toThrow('Translated text is empty')
+  it('should return empty string for empty input', () => {
+    expect(fixAnnotatedText('')).toBe('')
+    expect(fixAnnotatedText('   ')).toBe('')
   })
 
-  it('should throw error for wrong first paragraph ID', () => {
-    const translatedText = '[P1] Wrong first.\n[P3] Second paragraph.\n[P4] Third paragraph.'
-    expect(() => fixTranslatedText(translatedText, sourceSegment)).toThrow(
-      'Non-sequential paragraph numbering: expected [P2], found [P3]'
-    )
+  it('should remove text before first paragraph ID', () => {
+    const translatedText = 'Some preamble text[P2] First paragraph.\n[P3] Second paragraph.'
+    const result = fixAnnotatedText(translatedText)
+    expect(result).toMatch(/^\[P2\]/)
+    expect(result).not.toContain('Some preamble text')
   })
 
-  it('should throw error for wrong last paragraph ID', () => {
-    const translatedText = '[P2] First paragraph.\n[P3] Second paragraph.\n[P5] Wrong last.'
-    expect(() => fixTranslatedText(translatedText, sourceSegment)).toThrow(
-      'Non-sequential paragraph numbering: expected [P4], found [P5]'
-    )
-  })
-
-  it('should throw error for non-sequential paragraph IDs', () => {
-    const translatedText = '[P2] First paragraph.\n[P4] Skipped third.\n[P5] Wrong last.'
-    expect(() => fixTranslatedText(translatedText, sourceSegment)).toThrow(
-      'Non-sequential paragraph numbering: expected [P3], found [P4]'
-    )
-  })
-
-  it('should throw error for non-sequential paragraph IDs in middle', () => {
-    const translatedText =
-      '[P2] First paragraph.\n[P3] Second paragraph.\n[P6] Skipped fourth and fifth.'
-    expect(() => fixTranslatedText(translatedText, sourceSegment)).toThrow(
-      'Non-sequential paragraph numbering: expected [P4], found [P6]'
-    )
-  })
-
-  it('should throw error when text has no paragraph IDs', () => {
-    const translatedText = 'No paragraph IDs in this text at all.'
-    expect(() => fixTranslatedText(translatedText, sourceSegment)).toThrow(
-      'Invalid format: first line must start with a paragraph ID, got "No paragraph IDs in this text at all."'
-    )
-  })
-
-  it('should handle single paragraph range', () => {
-    const singleSource = '[P5] Single paragraph.'
-    const singleTranslated = '[P5] Đoạn văn duy nhất.'
-    const result = fixTranslatedText(singleTranslated, singleSource)
-    expect(result).toBe(singleTranslated)
-    expect(result).not.toContain('\n')
+  it('should handle single paragraph', () => {
+    const translatedText = '[P5] Single paragraph.'
+    const result = fixAnnotatedText(translatedText)
+    expect(result).toBe(translatedText)
   })
 
   it('should fix missing newline and space together', () => {
     const translatedText = 'Text[P2]First paragraph.\n[P3]Second paragraph.\n[P4]Third paragraph.'
-    const result = fixTranslatedText(translatedText, sourceSegment)
+    const result = fixAnnotatedText(translatedText)
     expect(result).toContain('[P2] First')
     expect(result).toContain('[P3] Second')
     expect(result).toContain('[P4] Third')
-    expect(result).toContain('\n')
-    expect(result.split('\n').length).toBe(3)
   })
 
   it('should preserve content while fixing format', () => {
     const translatedText =
       '[P2]First paragraph with content.\n[P3]Second paragraph with content.\n[P4]Third paragraph with content.'
-    const result = fixTranslatedText(translatedText, sourceSegment)
+    const result = fixAnnotatedText(translatedText)
     expect(result).toContain('First paragraph with content')
     expect(result).toContain('Second paragraph with content')
     expect(result).toContain('Third paragraph with content')
-    expect(result).toContain('\n')
-    expect(result.split('\n').length).toBe(3)
   })
 
-  it('should add missing paragraph ID at the beginning when other IDs are present', () => {
+  it('should handle text without paragraph IDs', () => {
+    const translatedText = 'No paragraph IDs in this text at all.'
+    const result = fixAnnotatedText(translatedText)
+    expect(result).toBe(translatedText)
+  })
+
+  it('should detect merged paragraphs and use [P1,2] format', () => {
+    const translatedText = '[P1] First paragraph.\nMerged content.\n[P3] Third paragraph.'
+    const result = fixAnnotatedText(translatedText)
+    expect(result).toContain('[P1,2]')
+    expect(result).toContain('First paragraph. Merged content.')
+    expect(result).toContain('[P3] Third paragraph.')
+  })
+
+  it('should detect multiple merged paragraphs and use [P1,2,3] format', () => {
     const translatedText =
-      'First paragraph without ID.\n[P3] Second paragraph.\n[P4] Third paragraph.'
-    const result = fixTranslatedText(translatedText, sourceSegment)
-    expect(result).toContain('[P2] First paragraph without ID.')
-    expect(result).toContain('[P3] Second paragraph.')
-    expect(result).toContain('[P4] Third paragraph.')
-    expect(result.split('\n').length).toBe(3)
+      '[P1] First paragraph.\nMerged content 2.\nMerged content 3.\n[P4] Fourth paragraph.'
+    const result = fixAnnotatedText(translatedText)
+    expect(result).toContain('[P1,2,3]')
+    expect(result).toContain('First paragraph. Merged content 2. Merged content 3.')
+    expect(result).toContain('[P4] Fourth paragraph.')
   })
 
-  it('should handle missing first paragraph ID with multiple paragraphs', () => {
-    const translatedText =
-      'Content without ID at start.\n[P3] Second paragraph.\n[P4] Third paragraph.'
-    const result = fixTranslatedText(translatedText, sourceSegment)
-    expect(result).toMatch(/^\[P2\] Content without ID at start\./)
-    expect(result).toContain('[P3] Second paragraph.')
-    expect(result).toContain('[P4] Third paragraph.')
+  it('should handle multiple merged paragraph sequences', () => {
+    const translatedText = '[P1] First.\nMerged 2.\n[P3] Third.\nMerged 4.\nMerged 5.\n[P6] Sixth.'
+    const result = fixAnnotatedText(translatedText)
+    expect(result).toContain('[P1,2]')
+    expect(result).toContain('[P3,4,5]')
+    expect(result).toContain('[P6]')
   })
 
-  it('should add missing paragraph ID in the middle', () => {
-    const translatedText = '[P2] First paragraph.\nMissing ID paragraph.\n[P4] Third paragraph.'
-    const result = fixTranslatedText(translatedText, sourceSegment)
-    expect(result).toContain('[P2] First paragraph.')
-    expect(result).toContain('[P3] Missing ID paragraph.')
-    expect(result).toContain('[P4] Third paragraph.')
-    expect(result.split('\n').length).toBe(3)
+  it('should not add merged format when paragraphs are sequential', () => {
+    const translatedText = '[P1] First paragraph.\n[P2] Second paragraph.\n[P3] Third paragraph.'
+    const result = fixAnnotatedText(translatedText)
+    expect(result).toContain('[P1] First paragraph.')
+    expect(result).toContain('[P2] Second paragraph.')
+    expect(result).toContain('[P3] Third paragraph.')
+    expect(result).not.toContain('[P1,2]')
+    expect(result).not.toContain('[P1,2,3]')
   })
 
-  it('should treat line without ID as continuation when next ID is sequential', () => {
-    const translatedText =
-      '[P2] First paragraph.\nContinuation text.\n[P3] Second paragraph.\n[P4] Third paragraph.'
-    const result = fixTranslatedText(translatedText, sourceSegment)
-    expect(result).toContain('[P2] First paragraph. Continuation text.')
-    expect(result).toContain('[P3] Second paragraph.')
-    expect(result).toContain('[P4] Third paragraph.')
-    expect(result.split('\n').length).toBe(3)
-  })
-
-  it('should handle multiple missing paragraph IDs in the middle', () => {
-    const sourceSegment2 = '[P2] First.\n[P3] Second.\n[P4] Third.\n[P5] Fourth.'
-    const translatedText = '[P2] Đầu tiên.\nMissing P3.\nMissing P4.\n[P5] Thứ tư.'
-    const result = fixTranslatedText(translatedText, sourceSegment2)
-    expect(result).toContain('[P2] Đầu tiên.')
-    expect(result).toContain('[P3] Missing P3.')
-    expect(result).toContain('[P4] Missing P4.')
-    expect(result).toContain('[P5] Thứ tư.')
-    expect(result.split('\n').length).toBe(4)
+  it('should handle merged paragraphs at the end', () => {
+    const translatedText = '[P1] First paragraph.\n[P2] Second paragraph.\nMerged content.'
+    const result = fixAnnotatedText(translatedText)
+    expect(result).toContain('[P1] First paragraph.')
+    expect(result).toContain('[P2] Second paragraph. Merged content.')
   })
 })
