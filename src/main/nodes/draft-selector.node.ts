@@ -1,6 +1,5 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { HumanMessage, SystemMessage } from '@langchain/core/messages'
 import type { RunnableConfig } from '@langchain/core/runnables'
 import { ChatOpenAI } from '@langchain/openai'
 import pLimit from 'p-limit'
@@ -74,7 +73,19 @@ ${JSON.stringify(state.glossary)}
 ##Draft Candidates##
 ${JSON.stringify(sceneDraftCandidates)}`.trim()
 
-      const messages = [new SystemMessage(systemPrompt), new HumanMessage(userPrompt)]
+      const messages = [
+        {
+          role: 'system',
+          content: systemPrompt,
+          cache_control: {
+            type: 'ephemeral'
+          }
+        },
+        {
+          role: 'user',
+          content: userPrompt
+        }
+      ]
 
       const result = await model.invoke(messages)
 

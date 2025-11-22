@@ -75,10 +75,6 @@ export const readabilityEditorNode = async (
     configuration: { baseURL: 'https://openrouter.ai/api/v1', apiKey: cfg.openrouterApiKey }
   }).withStructuredOutput(ReadabilityEditorOutputSchema)
 
-  const staticUserMessage = `
-##Target Language##
-${state.targetLanguage}`.trim()
-
   const limit = pLimit(CONCURRENT_LIMIT)
 
   const windowPromises: Array<Promise<z.infer<typeof ReadabilityEditorOutputSchema>>> = []
@@ -101,7 +97,10 @@ ${state.targetLanguage}`.trim()
         const activeWindow = activeParagraphs.map((para) => `${para.id} ${para.content}`).join('\n')
         const nextContext = nextParagraphs.map((para) => `${para.id} ${para.content}`).join('\n')
 
-        const dynamicUserMessage = `
+        const userPrompt = `
+##Target Language##
+${state.targetLanguage}
+
 ##Previous Context##
 ${previousContext || '(No previous context)'}
 
@@ -121,19 +120,7 @@ ${nextContext || '(No next context)'}`.trim()
           },
           {
             role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: staticUserMessage,
-                cache_control: {
-                  type: 'ephemeral'
-                }
-              },
-              {
-                type: 'text',
-                text: dynamicUserMessage
-              }
-            ]
+            content: userPrompt
           }
         ]
 

@@ -1,7 +1,7 @@
 import '@radix-ui/themes/styles.css'
 import './i18n/config'
 
-import { RouterProvider, createRouter } from '@tanstack/react-router'
+import { createRouter, RouterProvider } from '@tanstack/react-router'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { routeTree } from './generated/routeTree.gen'
@@ -14,7 +14,6 @@ declare module '@tanstack/react-router' {
   }
 }
 
-// biome-ignore lint/style/noNonNullAssertion: <explanation>
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <RouterProvider router={router} />

@@ -1,3 +1,3 @@
+export * from './language-switcher'
 export * from './navbar'
 export * from './theme-toggler'
-export * from './language-switcher'

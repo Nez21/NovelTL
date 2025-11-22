@@ -83,10 +83,6 @@ export const accuracyEditorNode = async (
     modelKwargs: { reasoning: { max_tokens: -1 } }
   }).withStructuredOutput(AccuracyEditorOutputSchema)
 
-  const staticUserMessage = `
-##Glossary##
-${JSON.stringify(state.glossary)}`.trim()
-
   const limit = pLimit(CONCURRENT_LIMIT)
 
   const sceneAccuracyPromises = state.sceneAnalysis.scenes.map((scene) => {
@@ -98,7 +94,13 @@ ${JSON.stringify(state.glossary)}`.trim()
         scene.endTag
       )
 
-      const dynamicUserMessage = `
+      const userPrompt = `
+##Target Language##
+${state.targetLanguage}
+
+##Glossary##
+${JSON.stringify(state.glossary)} 
+
 ##Scene Context##
 ${JSON.stringify(scene)}
 
@@ -118,19 +120,7 @@ ${translatedSegment}`.trim()
         },
         {
           role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: staticUserMessage,
-              cache_control: {
-                type: 'ephemeral'
-              }
-            },
-            {
-              type: 'text',
-              text: dynamicUserMessage
-            }
-          ]
+          content: userPrompt
         }
       ]
 

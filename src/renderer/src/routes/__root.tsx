@@ -1,7 +1,7 @@
 import { Theme } from '@radix-ui/themes'
 import { queryClient } from '@renderer/utils/trpc'
 import { QueryClientProvider } from '@tanstack/react-query'
-import { Outlet, createRootRoute } from '@tanstack/react-router'
+import { createRootRoute, Outlet } from '@tanstack/react-router'
 import { ThemeProvider, useTheme } from 'next-themes'
 import { Navbar } from '../features/navbar/navbar'
 

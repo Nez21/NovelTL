@@ -75,17 +75,19 @@ export const synthesisEditorNode = async (
     modelKwargs: { reasoning: { max_tokens: -1 } }
   }).withStructuredOutput(SynthesisEditorOutputSchema)
 
-  const staticUserMessage = `
+  const userPrompt = `
+##Target Language##
+${state.targetLanguage}
+
 ##Source Text##
 ${state.sourceText}
 
 ##Glossary##
-${JSON.stringify(state.glossary)}
+${JSON.stringify(state.glossary)} 
 
-##Scene Contexts##
-${JSON.stringify(state.sceneAnalysis.scenes)}`.trim()
+##Scene Context##
+${JSON.stringify(state.sceneAnalysis.scenes)}
 
-  const dynamicUserMessage = `
 ##Draft Text##
 ${state.translatedText}
 
@@ -102,19 +104,7 @@ ${JSON.stringify({ accuracyReport, styleReport, readabilityReport })}`.trim()
     },
     {
       role: 'user',
-      content: [
-        {
-          type: 'text',
-          text: staticUserMessage,
-          cache_control: {
-            type: 'ephemeral'
-          }
-        },
-        {
-          type: 'text',
-          text: dynamicUserMessage
-        }
-      ]
+      content: userPrompt
     }
   ]
 

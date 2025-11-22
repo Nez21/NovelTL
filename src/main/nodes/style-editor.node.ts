@@ -93,18 +93,16 @@ export const styleEditorNode = async (
         scene.endTag
       )
 
-      const staticUserMessage = `
+      const userPrompt = `
 ##Target Language##
 ${state.targetLanguage}
 
 ##Glossary##
-${JSON.stringify(state.glossary)}
-
+${JSON.stringify(state.glossary)} 
+ 
 ##Scene Context##
 ${JSON.stringify(scene)}
-`.trim()
 
-      const dynamicUserMessage = `
 ##Source Segment##
 ${sourceSegment}
 
@@ -121,19 +119,7 @@ ${translatedSegment}`.trim()
         },
         {
           role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: staticUserMessage,
-              cache_control: {
-                type: 'ephemeral'
-              }
-            },
-            {
-              type: 'text',
-              text: dynamicUserMessage
-            }
-          ]
+          content: userPrompt
         }
       ]
 

@@ -1,6 +1,5 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { HumanMessage, SystemMessage } from '@langchain/core/messages'
 import type { RunnableConfig } from '@langchain/core/runnables'
 import { ChatOpenAI } from '@langchain/openai'
 import pLimit from 'p-limit'
@@ -56,7 +55,19 @@ ${JSON.stringify(state.glossary)}
 ##Scene Context##
 ${JSON.stringify(scene)}`.trim()
 
-      const messages = [new SystemMessage(systemPrompt), new HumanMessage(userPrompt)]
+      const messages = [
+        {
+          role: 'system',
+          content: systemPrompt,
+          cache_control: {
+            type: 'ephemeral'
+          }
+        },
+        {
+          role: 'user',
+          content: userPrompt
+        }
+      ]
 
       const candidateLimit = pLimit(CONCURRENT_LIMIT)
       const candidatePromises = Array.from({ length: DRAFT_CANDIDATE_COUNT }, () =>

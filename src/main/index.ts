@@ -1,6 +1,6 @@
 import { join } from 'node:path'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
-import { BrowserWindow, app, shell } from 'electron'
+import { app, BrowserWindow, shell } from 'electron'
 import { createIPCHandler } from 'trpc-electron/main'
 
 import icon from '../../resources/icon.png?asset'
