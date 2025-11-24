@@ -7,7 +7,7 @@ import { z } from 'zod'
 import { cfg } from '../config'
 import { CONCURRENT_LIMIT } from '../constant'
 import { getParagraphsInRange } from '../utils/text-paragraph.utils'
-import type { TranslateOverallState } from '../workflows/translate.workflow'
+import type { TranslateOverallState } from '../workflows/translate-chapter.workflow'
 
 const systemPrompt = readFileSync(join(__dirname, './draft-selector.prompt.md'), 'utf-8')
 
@@ -61,14 +61,17 @@ export const draftSelectorNode = async (
 ##Target Language##
 ${state.targetLanguage}
 
-##Source Text##
-${sourceSegment}
+##Global Context##
+${JSON.stringify(state.globalContext)}
+
+##Glossary##
+${JSON.stringify(state.glossary)}
 
 ##Scene Context##
 ${JSON.stringify(scene)}
 
-##Glossary##
-${JSON.stringify(state.glossary)}
+##Source Text##
+${sourceSegment}
 
 ##Draft Candidates##
 ${JSON.stringify(sceneDraftCandidates)}`.trim()

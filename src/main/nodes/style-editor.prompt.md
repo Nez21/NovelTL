@@ -4,7 +4,23 @@
 ## Inputs
 
 - **`Target Language`**: The destination language (e.g., "English").
-- **`Source Segment`**: A text slice containing `[P#]` tags (may contain multiple paragraphs).
+- **`Global Context`**: The immutable laws, genre framework, and translation protocols.
+  ```json
+  {
+    "worldLaws": {
+      "genreFramework": "Genre (e.g., 'Xianxia', 'High Fantasy')",
+      "temporalSetting": "Time period (e.g., 'Ancient China', 'Modern Day')",
+      "magicLogic": "Magic system (e.g., 'Hard Magic', 'Soft Magic')"
+    },
+    "narrativeVoice": {
+      "perspectivePolicy": "Perspective (e.g., 'Third-Person Limited')",
+      "translationPhilosophy": "Approach (e.g., 'Foreignizing', 'Localizing')"
+    },
+    "vocabularyConstraints": {
+      "bannedCategories": ["Banned word categories (e.g., 'Modern Slang', 'Scientific Units')"]
+    }
+  }
+  ```
 - **`Scene Context`**: Scene context from the Scene Analyst.
   ```json
   {
@@ -23,6 +39,7 @@
     ]
   }
   ```
+- **`Source Segment`**: A text slice containing `[P#]` tags (may contain multiple paragraphs).
 
 ## Instructions
 
@@ -30,20 +47,22 @@
 
 ### 1. Atmospheric Dissonance (Pacing & Mood)
 
-*Compare Draft against `styleGuide` AND `Source Text` structure.*
+*Compare Draft against `Global Context`, `styleGuide` AND `Source Text` structure.*
 
 - **Pacing Drag:**
   - If Source is punchy/fast, flag Draft sentences that use excessive padding, weak conjunctions, or unnecessary passive voice. Include the paragraph ID.
 - **Tone Temperature:**
   - Flag if the Draft's vocabulary opposes the `styleGuide` (e.g., using "clinical/cold" words when the guide demands "suffocating/emotional" heat). Include the paragraph ID.
+- **Genre Breach:**
+  - Check against `Global Context`. Flag if the tone clashes with the immutable genre (e.g., slangy/casual narration in a "High Fantasy" setting). Include the paragraph ID.
 
 ### 2. Voice Inconsistency (Attitude & Register)
 
-*Compare Dialogue against `activeCast` vocabulary profiles.*
+*Compare Dialogue against `activeCast` vocabulary profiles and `Global Context`.*
 
 - **Lexical Clash:**
   - Flag if a "Rough" character uses academic/latinate words (e.g., "Therefore," "Subsequently"). Include the paragraph ID.
-  - Flag if an "Eloquent" character uses generic fillers (e.g., "Umm," "Like," "Stuff"). Include the paragraph ID.
+  - Flag if an "Eloquent" character uses generic fillers (e.g., "Umm," "Like," "Stuff"). Include the paragraph ID
 - **Attitude Violation (Hierarchy):**
   - *Note: Do not check grammatical honorifics.* Check **Subtext**.
   - If `A < B`: Flag if A sounds *bored*, *dismissive*, or *ironic* when they should sound *terrified* or *earnest*. Include the paragraph ID.
@@ -56,8 +75,8 @@
   - Flag if specific, visceral source words (e.g., "mangled," "wretched", "shrieked") are diluted into generic safe terms (e.g., "hurt," "sad", "shouted"). Include the paragraph ID.
 - **Metaphor Flatness:**
   - Flag if a vivid metaphor in the Source is flattened into a literal description in the Draft. Include the paragraph ID.
-- **Anachronism:**
-  - Check against `setting`. Flag vocabulary that breaks immersion for that time period (e.g., "Okay," "Guys," "Download" in a pre-modern setting). Include the paragraph ID.
+- **Anachronism (The Blacklist):**
+  - Check against `Global Context` -> `vocabularyConstraints`. Flag vocabulary that breaks immersion for that time period (e.g., "Okay," "Guys," "Download" in a pre-modern setting). Include the paragraph ID.
 
 ## Constraints
 - **Stay in your Lane:** Do NOT flag "Wrong Names," "Gender Errors," "Physical Impossibilities," or "Glossary Failures." The Accuracy Editor handles those.

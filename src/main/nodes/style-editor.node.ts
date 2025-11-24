@@ -7,7 +7,7 @@ import { z } from 'zod'
 import { cfg } from '../config'
 import { CONCURRENT_LIMIT } from '../constant'
 import { getParagraphsInRange, hasParagraphIds } from '../utils/text-paragraph.utils'
-import type { TranslateOverallState } from '../workflows/translate.workflow'
+import type { TranslateOverallState } from '../workflows/translate-chapter.workflow'
 
 const systemPrompt = readFileSync(join(__dirname, './style-editor.prompt.md'), 'utf-8')
 
@@ -88,9 +88,9 @@ export const styleEditorNode = async (
 ##Target Language##
 ${state.targetLanguage}
 
-##Glossary##
-${JSON.stringify(state.glossary)} 
- 
+##Global Context##
+${JSON.stringify(state.globalContext)}
+
 ##Scene Context##
 ${JSON.stringify(scene)}
 

@@ -7,7 +7,7 @@ import { z } from 'zod'
 import { cfg } from '../config'
 import { CONCURRENT_LIMIT, READABILITY_CONTEXT_SIZE, READABILITY_WINDOW_SIZE } from '../constant'
 import { parseParagraphs } from '../utils/text-paragraph.utils'
-import type { TranslateOverallState } from '../workflows/translate.workflow'
+import type { TranslateOverallState } from '../workflows/translate-chapter.workflow'
 
 const systemPrompt = readFileSync(join(__dirname, './readability-editor.prompt.md'), 'utf-8')
 

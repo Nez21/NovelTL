@@ -10,7 +10,7 @@ import {
   type Paragraph,
   parseParagraphs
 } from '../utils/text-paragraph.utils'
-import type { TranslateOverallState } from '../workflows/translate.workflow'
+import type { TranslateOverallState } from '../workflows/translate-chapter.workflow'
 
 const systemPrompt = readFileSync(join(__dirname, './scene-analyst.prompt.md'), 'utf-8')
 
@@ -66,16 +66,13 @@ export const sceneAnalystNode = async (
   }).withStructuredOutput(SceneAnalystOutputSchema)
 
   const userPrompt = `
-**Style Context:**
-
-${JSON.stringify(state.styleContext)}
+**Global Context:**
+${JSON.stringify(state.globalContext)}
 
 **Character Manifest:**
-
 ${JSON.stringify(state.characterManifest)}
 
 **Source Text:**
-
 ${processedText}`.trim()
 
   const messages = [

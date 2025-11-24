@@ -7,7 +7,7 @@ import { z } from 'zod'
 import { cfg } from '../config'
 import { CONCURRENT_LIMIT } from '../constant'
 import { getParagraphsInRange, hasParagraphIds } from '../utils/text-paragraph.utils'
-import type { TranslateOverallState } from '../workflows/translate.workflow'
+import type { TranslateOverallState } from '../workflows/translate-chapter.workflow'
 
 const systemPrompt = readFileSync(join(__dirname, './accuracy-editor.prompt.md'), 'utf-8')
 
@@ -38,12 +38,6 @@ export const AccuracyErrorSchema = z.object({
 })
 
 export const AccuracyEditorOutputSchema = z.object({
-  accuracyScore: z
-    .number()
-    .int()
-    .min(0)
-    .max(100)
-    .describe('An accuracy score from 0 (total mistranslation) to 100 (perfect 1:1 accuracy).'),
   accuracyFeedback: z
     .array(AccuracyErrorSchema)
     .describe(
@@ -57,7 +51,6 @@ export const accuracyEditorNode = async (
 ): Promise<Partial<TranslateOverallState>> => {
   if (!state.translatedText) {
     return {
-      accuracyScore: 0,
       accuracyFeedback: []
     }
   }
@@ -98,6 +91,9 @@ export const accuracyEditorNode = async (
 ##Target Language##
 ${state.targetLanguage}
 
+##Global Context##
+${JSON.stringify(state.globalContext)}
+
 ##Glossary##
 ${JSON.stringify(state.glossary)} 
 
@@ -133,12 +129,8 @@ ${translatedSegment}`.trim()
   const sceneResults = await Promise.all(sceneAccuracyPromises)
 
   const allErrors = sceneResults.flatMap((result) => result.accuracyFeedback)
-  const averageScore = Math.round(
-    sceneResults.reduce((sum, result) => sum + result.accuracyScore, 0) / sceneResults.length
-  )
 
   return {
-    accuracyScore: averageScore,
     accuracyFeedback: allErrors
   }
 }

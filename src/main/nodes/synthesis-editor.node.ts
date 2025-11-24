@@ -4,7 +4,7 @@ import type { RunnableConfig } from '@langchain/core/runnables'
 import { ChatOpenAI } from '@langchain/openai'
 import { cfg } from '../config'
 import { fixAnnotatedText, removeParagraphIds } from '../utils/text-paragraph.utils'
-import type { TranslateOverallState } from '../workflows/translate.workflow'
+import type { TranslateOverallState } from '../workflows/translate-chapter.workflow'
 
 const systemPrompt = readFileSync(join(__dirname, './synthesis-editor.prompt.md'), 'utf-8')
 
@@ -24,34 +24,14 @@ export const synthesisEditorNode = async (
     throw new Error('Scene analysis is required for synthesis editing')
   }
 
-  const accuracyReport = (state.accuracyFeedback || []).map((error) => ({
-    paragraphId: error.paragraphId,
-    type: error.type,
-    translatedSegment: error.translatedSegment,
-    feedback: error.feedback,
-    confidence: error.confidence
-  }))
-
-  const styleReport = (state.styleFeedback || []).map((error) => ({
-    paragraphId: error.paragraphId,
-    type: error.type,
-    translatedSegment: error.translatedSegment,
-    feedback: error.feedback,
-    confidence: error.confidence
-  }))
-
-  const readabilityReport = (state.readabilityFeedback || []).map((error) => ({
-    paragraphId: error.paragraphId,
-    type: error.type,
-    translatedSegment: error.translatedSegment,
-    feedback: error.feedback,
-    confidence: error.confidence
-  }))
-
-  if (!accuracyReport.length && !styleReport.length && !readabilityReport.length) {
+  if (
+    !state.accuracyFeedback?.length &&
+    !state.styleFeedback?.length &&
+    !state.readabilityFeedback?.length
+  ) {
     return {
       translatedText: removeParagraphIds(state.translatedText || ''),
-      editCount: Number.MAX_SAFE_INTEGER
+      editCount: 999
     }
   }
 
@@ -59,27 +39,34 @@ export const synthesisEditorNode = async (
     model: 'google/gemini-2.5-flash',
     temperature: 0.1,
     configuration: { baseURL: 'https://openrouter.ai/api/v1', apiKey: cfg.openrouterApiKey },
-    modelKwargs: { reasoning: { max_tokens: 1024 } }
+    modelKwargs: { reasoning: { max_tokens: 1024, exclude: true } }
   })
 
   const userPrompt = `
 ##Target Language##
 ${state.targetLanguage}
 
-##Source Text##
-${state.sourceText}
+##Global Context##
+${JSON.stringify(state.globalContext)}
 
 ##Glossary##
 ${JSON.stringify(state.glossary)} 
 
-##Scene Context##
+##Scene Contexts##
 ${JSON.stringify(state.sceneAnalysis.scenes)}
+
+##Source Text##
+${state.sourceText}
 
 ##Draft Text##
 ${state.translatedText}
 
 ##Critique Reports##
-${JSON.stringify({ accuracyReport, styleReport, readabilityReport })}`.trim()
+${JSON.stringify({
+  accuracyReport: state.accuracyFeedback,
+  styleReport: state.styleFeedback,
+  readabilityReport: state.readabilityFeedback
+})}`.trim()
 
   const messages = [
     {

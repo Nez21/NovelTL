@@ -5,7 +5,7 @@
 
 - **Target Language:** String (e.g., "English").
 - **Previous Context (Read-Only):** String (The preceding paragraphs). Used to check pronoun antecedents and flow entry.
-- **Active Window (Target):** String (The current batch of paragraphs to evaluate). **Report errors ONLY for this section.**
+- **Active Window (Target):** String (The current batch of paragraphs to evaluate, containing `[P#]` tags). **Report errors ONLY for this section.**
 - **Next Context (Read-Only):** String (The following paragraphs). Used to check transitions out of the window.
 
 ## Instructions

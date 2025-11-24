@@ -6,7 +6,7 @@ import pLimit from 'p-limit'
 import { cfg } from '../config'
 import { CONCURRENT_LIMIT, DRAFT_CANDIDATE_COUNT } from '../constant'
 import { fixAnnotatedText, getParagraphsInRange } from '../utils/text-paragraph.utils'
-import type { TranslateOverallState } from '../workflows/translate.workflow'
+import type { TranslateOverallState } from '../workflows/translate-chapter.workflow'
 
 const systemPrompt = readFileSync(join(__dirname, './draft-translator.prompt.md'), 'utf-8')
 
@@ -39,14 +39,17 @@ export const draftTranslatorNode = async (
 ##Target Language##
 ${state.targetLanguage}
 
-##Source Segment##
-${sourceSegment}
+##Global Context##
+${JSON.stringify(state.globalContext)}
 
 ##Glossary##
 ${JSON.stringify(state.glossary)}
 
 ##Scene Context##
-${JSON.stringify(scene)}`.trim()
+${JSON.stringify(scene)}
+
+##Source Segment##
+${sourceSegment}`.trim()
 
       const messages = [
         {

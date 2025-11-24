@@ -6,7 +6,7 @@ import { ChatOpenAI } from '@langchain/openai'
 import { z } from 'zod'
 import { cfg } from '../config'
 import { GenderEnum, TermCategoryEnum } from '../shared.types'
-import type { AnalyzeOverallState } from '../workflows/analyze.workflow'
+import type { AnalyzeOverallState } from '../workflows/analyze-chapter.workflow'
 
 const systemPrompt = readFileSync(join(__dirname, './glossary-translator.prompt.md'), 'utf-8')
 

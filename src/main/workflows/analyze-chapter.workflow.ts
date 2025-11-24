@@ -57,4 +57,4 @@ const builder = new StateGraph({
 
 export const graph = builder.compile()
 
-graph.name = 'Analyze Workflow'
+graph.name = 'Analyze Chapter'
