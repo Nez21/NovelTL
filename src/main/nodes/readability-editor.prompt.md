@@ -15,7 +15,7 @@
 - **Antecedent Check:** Before flagging a pronoun (He/She/It) in the `Active Window` as "Ambiguous," check `Previous Context`. If the subject was clearly named in the previous paragraph, it is **Valid**.
 - **Flow Bridge:** Check the transition between `Previous Context` [Last Sentence] and `Active Window` [First Sentence]. Ensure the rhythm connects smoothly.
 
-**2. Check for these 3 Error Types (In Active Window):**
+**2. Check for these 4 Error Types (In Active Window):**
 
 ### A. Unnatural Syntax (Translationese)
 - **Syntactic Calque:** Flag sentences that follow alien logic (e.g., awkward passive voice, inverted word order) instead of the `Target Language`'s natural Subject-Verb-Object flow.
@@ -30,11 +30,16 @@
 - **Unclear Antecedent:** Flag pronouns where the grammatical reference is unclear *even after checking* `Previous Context`.
 - **Dangling Modifier:** Flag descriptive clauses that grammatically attach to the wrong noun.
 
+### D. Unnatural Word Choice
+- **Uncommon/Archaic Words:** Flag words that are technically correct and understandable but are rarely used in modern, natural speech or writing. These words may be archaic, overly formal, or simply not part of common vocabulary (e.g., "utilize" when "use" is natural, "peruse" when "read" is natural, "endeavor" when "try" is natural).
+- **Register Mismatch:** Flag words that are too formal for the context (e.g., using "commence" in casual dialogue, "reside" when "live" is natural) or too casual for formal narrative.
+- **Unnatural Lexical Choices:** Flag words that native speakers would understand but would never naturally choose in that context. These create a "translation feel" even when grammatically correct (e.g., "He proceeded to walk" -> "He walked", "She made her way" -> "She went/walked").
+- **Overly Literal Translations:** Flag words that are direct translations from the source language but sound unnatural in the target language, even if technically correct (e.g., using "big" when "large" or "huge" fits the context better, or vice versa based on natural collocations).
+
 ## Constraints
 
 1. **Ignore Data & Identity:**
    - Do NOT flag Gender/Name anomalies (managed by Accuracy Specialist).
-   - Do NOT flag Glossary Terms (e.g., "Spirit Stone").
 2. **Ignore Contextual Fragments:**
    - If `Active Window` starts with a fragment (e.g., "And died.") that grammatically completes a sentence in `Previous Context`, this is **Valid**. Do not flag it as a syntax error.
 3. **Ignore Content:**

@@ -6,7 +6,7 @@ import { ChatOpenAI } from '@langchain/openai'
 import { z } from 'zod'
 import { cfg } from '../config'
 import { CharacterSchema } from '../shared.types'
-import type { AnalyzeOverallState } from '../workflows/analyze-chapter.workflow'
+import type { AnalyzeCharacterOverallState } from '../workflows/analyze-character.workflow'
 
 const systemPrompt = readFileSync(join(__dirname, './character-analyst.prompt.md'), 'utf-8')
 
@@ -34,9 +34,9 @@ export const CharacterAnalystOutputSchema = z.object({
 })
 
 export const characterAnalystNode = async (
-  state: AnalyzeOverallState,
+  state: AnalyzeCharacterOverallState,
   _config: RunnableConfig
-): Promise<Partial<AnalyzeOverallState>> => {
+): Promise<Partial<AnalyzeCharacterOverallState>> => {
   const model = new ChatOpenAI({
     model: 'google/gemini-2.5-flash',
     temperature: 0.1,

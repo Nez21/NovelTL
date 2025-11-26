@@ -4,7 +4,10 @@ import { StateGraph } from '@langchain/langgraph'
 import { z } from 'zod'
 import { GlobalContextSchema, novelAnalystNode } from '../nodes/novel-analyst.node'
 
+import { LanguageEnum } from '../shared.types'
+
 export const GlobalContextInputStateSchema = z.object({
+  targetLanguage: LanguageEnum,
   textSample: z
     .string()
     .min(100)

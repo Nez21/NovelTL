@@ -55,6 +55,7 @@
 - **Tag Mismatch:** The `Translated Segment` MUST contain the exact same Paragraph IDs (`[P#]`) as the `Source Segment`. Flag missing, out-of-order, or hallucinated tags. Include the paragraph ID where the mismatch occurs.
 
 - **Glossary & Terminology Violation:**
+
   - **Rule:** Terms must match the `Glossary` translation.
   - **Exception:** Allow valid grammatical variations (plurals, possessives, conjugations) of the target term. Flag synonyms or incorrect roots.
   - **Naming Strategy:** Check `Global Context` -> `narrativeVoice.translationPhilosophy`. (e.g., If "Westernization" is active, flag Pinyin names like "Xiao Wu"). Include the paragraph ID.
@@ -67,11 +68,13 @@
 *Compare `Translated Segment` against `criticalFlags` and `Global Context`.*
 
 - **Physical/Magical Contradictions:**
+
   - If flag = "Leg Broken", flag agile verbs (sprinted, leaped). Include the paragraph ID.
   - If flag = "Silence Field", flag auditory verbs (shouted, screamed). Include the paragraph ID.
   - **Magic Rules:** Check `Global Context` -> `worldLaws.magicLogic`. Flag terms that break the "Hard/Soft" rules established. Include the paragraph ID.
 
 - **Identity Mismatch (Narration vs. Dialogue):**
+
   - **Narration:** If flag = "Leo is now Yvette", flag any *narrative* description using "Leo" or "He". Include the paragraph ID.
   - **Dialogue:** If flag = "Disguise: Princess is Beggar", do NOT flag characters calling her "Beggar." ONLY flag if a character *breaking the disguise logic* (e.g., a stranger calling her "Highness"). Include the paragraph ID.
 

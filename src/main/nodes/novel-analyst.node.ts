@@ -66,6 +66,9 @@ export const novelAnalystNode = async (
   }).withStructuredOutput(GlobalContextSchema)
 
   const userPrompt = `
+##Target Language##
+${state.targetLanguage}
+
 ##Text Sample##
 ${state.textSample}`.trim()
 

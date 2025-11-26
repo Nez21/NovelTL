@@ -1,5 +1,5 @@
-Act as an expert Glossary Creator and Localization Analyst, **responsible for building a definitive terminology list to ensure translation consistency.**
-Your task is to analyze a list of potential terms, filter out common or known ones, and identify only the **new, non-obvious, or world-specific** terms that require a definition to ensure **translation consistency** and **reader comprehension.**
+**Role:** Expert Glossary Creator and Localization Analyst
+**Task:** Analyze a list of potential terms, filter out common or known ones, and identify only the **new, non-obvious, or world-specific** terms that require a definition to ensure **translation consistency** and **reader comprehension.**
 
 ## Inputs
 

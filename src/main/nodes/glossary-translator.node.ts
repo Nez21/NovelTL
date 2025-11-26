@@ -6,7 +6,8 @@ import { ChatOpenAI } from '@langchain/openai'
 import { z } from 'zod'
 import { cfg } from '../config'
 import { GenderEnum, TermCategoryEnum } from '../shared.types'
-import type { AnalyzeOverallState } from '../workflows/analyze-chapter.workflow'
+import type { AnalyzeCharacterOverallState } from '../workflows/analyze-character.workflow'
+import type { ExtractTermsOverallState } from '../workflows/extract-terms.workflow'
 
 const systemPrompt = readFileSync(join(__dirname, './glossary-translator.prompt.md'), 'utf-8')
 
@@ -30,9 +31,9 @@ export const GlossaryTranslatorOutputSchema = z.object({
 })
 
 export const glossaryTranslatorNode = async (
-  state: AnalyzeOverallState,
+  state: AnalyzeCharacterOverallState | ExtractTermsOverallState,
   _config: RunnableConfig
-): Promise<Partial<AnalyzeOverallState>> => {
+): Promise<Partial<AnalyzeCharacterOverallState | ExtractTermsOverallState>> => {
   const model = new ChatOpenAI({
     model: 'google/gemini-2.5-flash',
     temperature: 0.1,
@@ -44,7 +45,7 @@ export const glossaryTranslatorNode = async (
 
   const entities: z.infer<typeof TranslationEntityInputSchema>[] = []
 
-  if (state.updatedCharacters) {
+  if ('updatedCharacters' in state && state.updatedCharacters) {
     for (const character of state.updatedCharacters) {
       if (
         !state.newCharacterIds?.includes(character.characterId) &&
@@ -73,7 +74,7 @@ export const glossaryTranslatorNode = async (
     }
   }
 
-  if (state.newTerms) {
+  if ('newTerms' in state && state.newTerms) {
     for (const term of state.newTerms) {
       entities.push({
         term: term.term,
@@ -92,6 +93,9 @@ export const glossaryTranslatorNode = async (
   const userPrompt = `
 ##Target Language##
 ${state.targetLanguage}
+
+##Translation Philosophy##
+${state.translationPhilosophy || 'Not specified'}
 
 ##Entities##
 ${JSON.stringify(entities)}`.trim()

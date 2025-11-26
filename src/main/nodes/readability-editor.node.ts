@@ -14,7 +14,7 @@ const systemPrompt = readFileSync(join(__dirname, './readability-editor.prompt.m
 export const ReadabilityErrorSchema = z.object({
   paragraphId: z.string().describe('The paragraph ID (e.g., [P1]) where the error was found.'),
   type: z
-    .enum(['Unnatural Syntax', 'Rhythm Stagnation', 'Ambiguity'])
+    .enum(['Unnatural Syntax', 'Rhythm Stagnation', 'Ambiguity', 'Unnatural Word Choice'])
     .describe('The category of readability or flow error.'),
   confidence: z
     .number()

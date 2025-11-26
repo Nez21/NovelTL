@@ -6,7 +6,7 @@ import { ChatOpenAI } from '@langchain/openai'
 import { z } from 'zod'
 import { cfg } from '../config'
 import { TermCategoryEnum } from '../shared.types'
-import type { AnalyzeOverallState } from '../workflows/analyze-chapter.workflow'
+import type { ExtractTermsOverallState } from '../workflows/extract-terms.workflow'
 
 const systemPrompt = readFileSync(join(__dirname, './terms-editor.prompt.md'), 'utf-8')
 
@@ -27,9 +27,9 @@ export const TermsEditorOutputSchema = z.object({
 })
 
 export const termsEditorNode = async (
-  state: AnalyzeOverallState,
+  state: ExtractTermsOverallState,
   _config: RunnableConfig
-): Promise<Partial<AnalyzeOverallState>> => {
+): Promise<Partial<ExtractTermsOverallState>> => {
   const model = new ChatOpenAI({
     model: 'google/gemini-2.5-flash',
     temperature: 0.3,
